@@ -20,3 +20,10 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+# Track A: regenerable per-day OOS predictions
+experiments/track_a_headline/predictions/
+experiments/track_a_headline/predictions/
+
+# Track A: synthetic smoke-run output (regenerable from --smoke)
+experiments/track_a_headline_smoke/
+outputs/track_a_smoke/
