@@ -17,18 +17,25 @@ analysis is the empirical anchor.
 ```
 seet2026/
 ├── data/
-│   ├── raw/         downloaded CSVs (gitignored; provenance in manifest)
-│   ├── processed/   built panels (gitignored; provenance in manifest)
-│   └── manifests/   raw_manifest.json, processed_manifest.json (tracked)
-├── src/seet/        package code (added per-turn)
-├── experiments/     experiment entry points (added per-track)
-├── outputs/         figures, tables, run logs (gitignored)
-├── tests/           pytest suites
-├── scripts/         one-shot runners
+│   ├── raw/                     downloaded CSVs (gitignored; provenance in manifest)
+│   ├── processed/               built panels (gitignored; provenance in manifest)
+│   │   └── features/            per-panel feature CSVs (gitignored; provenance in features_manifest)
+│   └── manifests/               raw_manifest.json, processed_manifest.json,
+│                                features_manifest.json (all tracked)
+├── src/seet/
+│   ├── __init__.py
+│   └── features.py              feature builder — build_features(panel_df, feature_set_id)
+├── experiments/                 experiment entry points (added per-track)
+├── outputs/                     figures, tables, run logs (gitignored)
+├── tests/
+│   ├── test_processed_panels.py smoke test for processed layer
+│   └── test_features.py         structural + warmup + no-look-ahead + NaN propagation
+├── scripts/                     one-shot runners
 │   ├── fetch_raw.py             yfinance + CBOE-RVX-fallback raw fetch
 │   ├── import_rvx_from_cboe.py  standalone CBOE RVX normalizer
 │   ├── build_processed.py       build the four processed panels
-│   └── audit_panels.py          NaN-region and structural diagnostics
+│   ├── build_features.py        build the per-panel feature CSVs
+│   └── audit_panels.py          panel + feature NaN-region diagnostics
 ├── setup.sh / setup.ps1         venv, deps, lockfile, git init
 ├── requirements.lock            full pin from pip freeze
 └── CLAUDE.md                    this file
@@ -124,6 +131,113 @@ block or a documented data-quality gap. The smoke test in
 `tests/test_processed_panels.py` further asserts that the manifested
 NaN regions match the on-disk panels exactly.
 
+### Features
+
+Per-panel feature CSVs in `data/processed/features/`, one per processed
+panel. Built by `python scripts/build_features.py`, which dispatches to
+the public API in `src/seet/features.py`:
+
+```python
+from seet.features import build_features
+features_df, specs = build_features(panel_df, feature_set_id)
+```
+
+Provenance recorded in `data/manifests/features_manifest.json`
+(tracked) with per-panel sha256, row count, first/last date,
+feature_count, max_warmup_rows, source-panel sha256 (so feature/panel
+drift is detectable), schema_version, build timestamp, and the full
+per-feature schema (`name`, `feature_group`, `formula`, `depends_on`,
+`lookback_window`, `schema_version=1`).
+
+| Panel | feature_set_id | Features | Notes |
+|-------|----------------|---------:|-------|
+| `spx_extended_2011` | `spx_full`     | 35 | Full SPX vol family — Groups 1, 2, 3, 4 |
+| `spx_core_2007`     | `spx_core`     | 23 | Reduced — no VIX9D/VIX6M; subset of Group 3 |
+| `ndx_2007`          | `ndx_minimal`  | 12 | NDX/VXN only — Groups 1, 2 |
+| `rut_2009`          | `rut_minimal`  | 12 | RUT/RVX only — Groups 1, 2 |
+
+Feature groups:
+
+1. **Group 1 — index returns and realized vol** on the panel's primary
+   price column. `ret_1d`, `ret_5d`, `ret_10d`, `ret_20d`, `logret_1d`,
+   `rv_10d`, `rv_20d`, `drawdown_20d`. Realized vol is rolling std of
+   `logret_1d` annualized by `sqrt(252)`.
+2. **Group 2 — vol level transformations** on each vol column.
+   `<vol>_chg_1d`, `<vol>_chg_5d`, `<vol>_pctchg_5d`,
+   `<vol>_pctile_252d` (rolling 252-day percentile rank).
+3. **Group 3 — term structure** (SPX panels only). Differences and
+   ratios across VIX, VIX3M, VIX6M, VIX9D plus binary indicators
+   (`curve_inversion`, `short_end_spike`). Indicators are
+   float-with-NaN, never coerced to 0.
+4. **Group 4 — vol-of-vol** (SPX panels only). Group 2 mechanics
+   applied to VVIX. Tagged `feature_group=4` in the manifest to mark
+   the second-order interpretation, even though the formulas are
+   identical to Group 2.
+
+#### Contracts (project invariants — anything breaking these is a bug)
+
+- **No look-ahead.** Every feature at date *t* uses only data with
+  `Date <= t`. All rolling and shift operations are trailing-only.
+  Verified by `tests/test_features.py::test_no_lookahead`, which
+  samples 50 random dates per panel, slices the panel to rows
+  `[0..t]`, rebuilds features on the slice, and asserts bit-for-bit
+  equality with the materialized `features[t]`. A failure here
+  invalidates every downstream model — do not paper over it.
+- **Warmup is NaN, never zero.** A feature with `lookback_window = N`
+  has its first `N − 1` rows NaN. No `fillna(0)`, no forward-fill, no
+  interpolation. Max warmup across all four panels is **251 rows**
+  (driven by `*_pctile_252d`).
+- **Data-quality NaNs propagate.** The 5 documented RVX gap dates and
+  the 8 documented VVIX gap dates produce NaN in every feature whose
+  `depends_on` includes the gap-bearing column, at the exact gap dates.
+  Rolling-window features additionally have NaN for up to
+  `lookback_window` trailing rows after each gap (pandas defaults with
+  `min_periods=window`). Same policy as the raw layer: **do not
+  interpolate**.
+- **Group 3 indicators are NaN-aware.** `curve_inversion` and
+  `short_end_spike` are float64 with explicit NaN propagation; either
+  operand NaN → result NaN.
+
+#### Smoke-test guarantees (`tests/test_features.py`)
+
+40 parametrized test cases (10 functions × 4 panels). Expected:
+**39 passed, 1 skipped** (the skip is
+`test_data_quality_nan_propagates_to_features[ndx_2007]` because
+`ndx_2007` has no `data_quality_notes`). Coverage:
+
+- **Structural.** Row count matches source panel; Date column matches
+  source panel; columns match manifest order; all feature dtypes are
+  `float64`; feature CSV sha256 matches manifest;
+  `features_manifest.source_panel_sha256` matches
+  `processed_manifest.sha256` (catches drift if a panel rebuilds
+  without features re-building); manifest specs are well-formed
+  (schema_version, group ∈ {1,2,3,4}, lookback_window ≥ 1).
+- **Warmup.** First `lookback_window − 1` rows of each feature are
+  NaN.
+- **Data-quality propagation.** At every documented missing date in
+  `processed_manifest.data_quality_notes`, every feature whose
+  `depends_on` includes the missing series is NaN at that exact row.
+- **No look-ahead.** The integrity test described above.
+
+#### Auditor coverage (`scripts/audit_panels.py`)
+
+Two-section report:
+
+1. **PANEL AUDIT** — raw NaN regions classified against truncations
+   and `data_quality_notes` (truncation blocks at index 0 are
+   expected; documented gap dates are expected; everything else is
+   flagged).
+2. **FEATURE AUDIT** — each feature CSV's NaN cells classified
+   against `expected_NaN = warmup_mask ∪ rolling-OR(input_nan_mask,
+   lookback_window)` over each input column. The expected mask is
+   conservative (a strict superset of pandas' actual NaN); any actual
+   NaN beyond the expected mask is a genuine anomaly. Skipped if
+   `features_manifest.json` is absent.
+
+Exit 0 with all panels `[OK]` in both sections means every on-disk
+NaN — panel or feature — is warmup, a known truncation, a documented
+data-quality gap, or the rolling-window propagation of one of those.
+
 ## Experimental plan — Tracks A through G
 
 To be filled in as the plan finalizes. Each track produces a STATUS
@@ -175,9 +289,10 @@ schema for that track.
 1. Activate the venv at `.venv` (Python 3.13.5).
 2. `requirements.lock` is the contract — do not upgrade without a
    deliberate reason.
-3. To refresh data end-to-end:
+3. To refresh the data + features layer end-to-end:
    `python scripts/fetch_raw.py` →
    `python scripts/build_processed.py` →
+   `python scripts/build_features.py` →
    `python scripts/audit_panels.py` →
    `pytest tests/ -v`.
 4. Commit per logical step, never bundle a raw refresh with a feature
@@ -190,5 +305,12 @@ schema for that track.
 - `e46fd3c1` — raw data manifest + CBOE RVX manual import
 - `7713290`  — fetch_raw.py auto-fallback to CBOE RVX
 - `ee950dc`  — processed panels + manifest
-- (subsequent commits this turn add audit_panels.py, the smoke test,
-  and this CLAUDE.md)
+- `209a3df`  — audit_panels.py + RVX/VVIX gap notes in processed_manifest.json
+- `7b71b1f`  — smoke test for processed panels
+- `0ac6aab`  — CLAUDE.md (project orientation)
+- `c186ae1`  — track scripts/import_rvx_from_cboe.py (predecessor of
+  fetch_raw.py auto-fallback; was on disk but never `git add`-ed
+  earlier)
+- `491dcaa`  — feature engineering: src/seet/features.py + four feature panels
+- `f7722b9`  — smoke test for features (structural + warmup + no-look-ahead + NaN propagation)
+- `0c84df3`  — audit_panels.py: feature-aware FEATURE AUDIT section
