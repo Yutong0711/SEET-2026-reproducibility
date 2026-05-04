@@ -1,0 +1,210 @@
+{
+  "ndx_2007": {
+    "anchor_series": "NDX",
+    "build_timestamp_utc": "2026-05-04T02:56:59Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "NDX",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/NDX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "VXN",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/VXN.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      }
+    ],
+    "file_path": "data/processed/ndx_2007.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "purpose": "NDX/VXN panel; neither series has a backfill issue in this window.",
+    "row_count": 4863,
+    "sha256": "054705a04876d3a870676b27a6b51d6f1badb4fe5e6fb4e3dbd7a215092d2770"
+  },
+  "rut_2009": {
+    "anchor_series": "RUT",
+    "build_timestamp_utc": "2026-05-04T02:56:59Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2009-09-16",
+        "last_valid_date": "2026-05-01",
+        "name": "RUT",
+        "non_null_count": 4182,
+        "raw_source": "data/raw/RUT.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2009-09-16",
+        "last_valid_date": "2026-05-01",
+        "name": "RVX",
+        "non_null_count": 4177,
+        "raw_source": "data/raw/RVX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      }
+    ],
+    "file_path": "data/processed/rut_2009.csv",
+    "first_date": "2009-09-16",
+    "last_date": "2026-05-01",
+    "purpose": "RUT/RVX panel; window is limited by RVX availability (CBOE manual import begins 2009-09-16).",
+    "row_count": 4182,
+    "sha256": "ad887d182c025cab083c320a990748cbc163352ccb366c5e27a82d4d5ec626f2"
+  },
+  "spx_core_2007": {
+    "anchor_series": "SPX",
+    "build_timestamp_utc": "2026-05-04T02:56:59Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "SPX",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/SPX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/VIX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-12-04",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX3M",
+        "non_null_count": 4631,
+        "raw_source": "data/raw/VIX3M.csv",
+        "truncated_before": "2007-12-04",
+        "truncation_reason": "VIX3M (originally published as VXV) was launched on 2007-12-04; pre-launch values in the raw feed are CBOE/Yahoo synthetic backfill."
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2012-04-02",
+        "last_valid_date": "2026-05-01",
+        "name": "VVIX",
+        "non_null_count": 3533,
+        "raw_source": "data/raw/VVIX.csv",
+        "truncated_before": "2012-04-01",
+        "truncation_reason": "VVIX was launched by CBOE in March 2012; the first ~1 month is dropped to allow clean data, so values before 2012-04-01 are removed."
+      }
+    ],
+    "file_path": "data/processed/spx_core_2007.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "purpose": "Reduced SPX vol-family panel for crisis-period analyses. SPX and VIX are real throughout; VIX3M is real from 2007-12-04, VVIX from 2012-04-01.",
+    "row_count": 4863,
+    "sha256": "3719b91d158205e6b3c0126bef81dc1e3a9cda3537b591304d1975525cdb1531"
+  },
+  "spx_extended_2011": {
+    "anchor_series": "VIX9D",
+    "build_timestamp_utc": "2026-05-04T02:56:59Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2011-02-23",
+        "last_valid_date": "2026-05-01",
+        "name": "SPX",
+        "non_null_count": 3820,
+        "raw_source": "data/raw/SPX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2011-02-23",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX",
+        "non_null_count": 3820,
+        "raw_source": "data/raw/VIX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2011-02-23",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX9D",
+        "non_null_count": 3820,
+        "raw_source": "data/raw/VIX9D.csv",
+        "truncated_before": "2011-02-23",
+        "truncation_reason": "VIX9D was launched by CBOE on 2011-02-23; pre-launch values in the raw feed are CBOE/Yahoo synthetic backfill, not real-time available signal."
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2011-02-23",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX3M",
+        "non_null_count": 3820,
+        "raw_source": "data/raw/VIX3M.csv",
+        "truncated_before": "2007-12-04",
+        "truncation_reason": "VIX3M (originally published as VXV) was launched on 2007-12-04; pre-launch values in the raw feed are CBOE/Yahoo synthetic backfill."
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2011-02-23",
+        "last_valid_date": "2026-05-01",
+        "name": "VIX6M",
+        "non_null_count": 3820,
+        "raw_source": "data/raw/VIX6M.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2012-04-02",
+        "last_valid_date": "2026-05-01",
+        "name": "VVIX",
+        "non_null_count": 3533,
+        "raw_source": "data/raw/VVIX.csv",
+        "truncated_before": "2012-04-01",
+        "truncation_reason": "VVIX was launched by CBOE in March 2012; the first ~1 month is dropped to allow clean data, so values before 2012-04-01 are removed."
+      }
+    ],
+    "file_path": "data/processed/spx_extended_2011.csv",
+    "first_date": "2011-02-23",
+    "last_date": "2026-05-01",
+    "purpose": "Full SPX vol-family panel anchored at the VIX9D launch date. VVIX still carries NaN until 2012-04-01.",
+    "row_count": 3820,
+    "sha256": "dbe887c0eaf1b294d7c1b19fc2b1207a7b2bef4b69993b73bb65cac490929a11"
+  }
+}
