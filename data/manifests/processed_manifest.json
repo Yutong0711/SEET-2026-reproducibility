@@ -66,6 +66,21 @@
         "truncation_reason": null
       }
     ],
+    "data_quality_notes": [
+      {
+        "series": "RVX",
+        "issue": "missing values (NaN in panel)",
+        "missing_dates": [
+          "2018-05-01",
+          "2018-12-03",
+          "2019-02-20",
+          "2019-07-05",
+          "2020-10-16"
+        ],
+        "pattern": "scattered",
+        "summary": "5 isolated single-day RVX gaps across ~2.4 years (2018-05-01 to 2020-10-16); no consecutive-day clustering, no monthly or quarterly concentration. Likely random CBOE feed gaps. Source: CBOE RVX_History.csv. Action: leave as NaN; do not interpolate."
+      }
+    ],
     "file_path": "data/processed/rut_2009.csv",
     "first_date": "2009-09-16",
     "last_date": "2026-05-01",
@@ -121,6 +136,24 @@
         "raw_source": "data/raw/VVIX.csv",
         "truncated_before": "2012-04-01",
         "truncation_reason": "VVIX was launched by CBOE in March 2012; the first ~1 month is dropped to allow clean data, so values before 2012-04-01 are removed."
+      }
+    ],
+    "data_quality_notes": [
+      {
+        "series": "VVIX",
+        "issue": "missing values (NaN in panel) post-truncation",
+        "missing_dates": [
+          "2019-07-05",
+          "2020-06-11",
+          "2021-01-22",
+          "2021-02-17",
+          "2021-05-05",
+          "2021-05-11",
+          "2021-05-20",
+          "2021-05-25"
+        ],
+        "pattern": "scattered with one cluster",
+        "summary": "8 single-day VVIX gaps post-2012-04-01 truncation, all verified absent from data/raw/VVIX.csv but present on the same dates in data/raw/SPX.csv (genuine CBOE-feed origin, not a build artifact). 4 of the 8 cluster in May 2021 (2021-05-05, 2021-05-11, 2021-05-20, 2021-05-25, all within a 3-week window), suggesting a possible CBOE feed incident that month; the other 4 are scattered (2019-07-05, 2020-06-11, 2021-01-22, 2021-02-17). Note: 2019-07-05 (Friday after July 4) is also a missing date in the rut_2009 RVX gaps, hinting at a cross-product CBOE feed issue that day. Action: leave as NaN; do not interpolate."
       }
     ],
     "file_path": "data/processed/spx_core_2007.csv",
@@ -198,6 +231,24 @@
         "raw_source": "data/raw/VVIX.csv",
         "truncated_before": "2012-04-01",
         "truncation_reason": "VVIX was launched by CBOE in March 2012; the first ~1 month is dropped to allow clean data, so values before 2012-04-01 are removed."
+      }
+    ],
+    "data_quality_notes": [
+      {
+        "series": "VVIX",
+        "issue": "missing values (NaN in panel) post-truncation",
+        "missing_dates": [
+          "2019-07-05",
+          "2020-06-11",
+          "2021-01-22",
+          "2021-02-17",
+          "2021-05-05",
+          "2021-05-11",
+          "2021-05-20",
+          "2021-05-25"
+        ],
+        "pattern": "scattered with one cluster",
+        "summary": "8 single-day VVIX gaps post-2012-04-01 truncation, all verified absent from data/raw/VVIX.csv but present on the same dates in data/raw/SPX.csv (genuine CBOE-feed origin, not a build artifact). 4 of the 8 cluster in May 2021 (2021-05-05, 2021-05-11, 2021-05-20, 2021-05-25, all within a 3-week window), suggesting a possible CBOE feed incident that month; the other 4 are scattered (2019-07-05, 2020-06-11, 2021-01-22, 2021-02-17). Note: 2019-07-05 (Friday after July 4) is also a missing date in the rut_2009 RVX gaps, hinting at a cross-product CBOE feed issue that day. Action: leave as NaN; do not interpolate."
       }
     ],
     "file_path": "data/processed/spx_extended_2011.csv",
