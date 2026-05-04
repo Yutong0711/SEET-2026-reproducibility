@@ -1,0 +1,97 @@
+{
+  "NDX": {
+    "download_timestamp_utc": "2026-05-04T02:13:55Z",
+    "file_path": "data/raw/NDX.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "135392ac9418e9bc82ffab04b2bfbb94282d2f96892cc91a2e18126328fa418d",
+    "source_ticker": "^NDX"
+  },
+  "RUT": {
+    "download_timestamp_utc": "2026-05-04T02:13:55Z",
+    "file_path": "data/raw/RUT.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "264774fcba0dd554bb7def193f780181565b69fdaa50cee96f51c44223471d91",
+    "source_ticker": "^RUT"
+  },
+  "RVX": {
+    "download_timestamp_utc": "2026-05-04T02:23:15Z",
+    "file_path": "data/raw/RVX.csv",
+    "first_date": "2009-09-16",
+    "last_date": "2026-05-01",
+    "row_count": 4177,
+    "rows_dropped_bad_close": 0,
+    "rows_dropped_bad_date": 0,
+    "sha256": "fa5450316af599437a9b9c36073e1a31caf96915b55a0f398e7af0f006c7f6a1",
+    "source_note": "CBOE manual download (yfinance returned empty frame for ^RVX); source: https://www.cboe.com/us/indices/dashboard/RVX/",
+    "source_path": "data/raw/RVX_History.csv",
+    "source_sha256": "ce99463e4067b65b29df14d0adcf7e9a9d806b704fceb6797fa072cd36df95f6",
+    "source_ticker": "^RVX"
+  },
+  "SPX": {
+    "download_timestamp_utc": "2026-05-04T02:13:53Z",
+    "file_path": "data/raw/SPX.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "44ea43ef8223673332557b48b9e0a2039032007681ad60d1b7bd5a5a3c7b29d7",
+    "source_ticker": "^GSPC"
+  },
+  "VIX": {
+    "download_timestamp_utc": "2026-05-04T02:13:55Z",
+    "file_path": "data/raw/VIX.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "3c7ac3f0a998e7cbf3c61a7532e9b3fd7d1f2b426828eb7424d9f9a6364226e9",
+    "source_ticker": "^VIX"
+  },
+  "VIX3M": {
+    "download_timestamp_utc": "2026-05-04T02:13:56Z",
+    "file_path": "data/raw/VIX3M.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "351b1579d6b52a167ce58a1d558dc7d2a01e2b9453e7e0754bbaae62e7d2d601",
+    "source_ticker": "^VIX3M"
+  },
+  "VIX6M": {
+    "download_timestamp_utc": "2026-05-04T02:13:56Z",
+    "file_path": "data/raw/VIX6M.csv",
+    "first_date": "2008-01-02",
+    "last_date": "2026-05-01",
+    "row_count": 4612,
+    "sha256": "6cb66349f568d81a6de3a6aa96784b244f0ee552bc940ff7709a5e90b541cf72",
+    "source_ticker": "^VIX6M"
+  },
+  "VIX9D": {
+    "download_timestamp_utc": "2026-05-04T02:13:56Z",
+    "file_path": "data/raw/VIX9D.csv",
+    "first_date": "2011-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 3855,
+    "sha256": "42f6d954e20b8f64710c06a806231d1c9bf4a1b1e2bdae86a4ca1d713c6d5273",
+    "source_ticker": "^VIX9D"
+  },
+  "VVIX": {
+    "download_timestamp_utc": "2026-05-04T02:13:56Z",
+    "file_path": "data/raw/VVIX.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4854,
+    "sha256": "dfd9ad89b79659018d13cd5417bcfdc17c4d45240c655685b1b1b1c92b24324e",
+    "source_ticker": "^VVIX"
+  },
+  "VXN": {
+    "download_timestamp_utc": "2026-05-04T02:13:57Z",
+    "file_path": "data/raw/VXN.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "row_count": 4863,
+    "sha256": "20f96d8379ad797b8374e1be4218aa72ab0fc780f71783fcf6b0e7bdffe4d303",
+    "source_ticker": "^VXN"
+  }
+}
