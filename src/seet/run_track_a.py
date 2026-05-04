@@ -737,7 +737,13 @@ def plot_lift_with_ci(per_fold_df: pd.DataFrame, out_path: Path) -> None:
             alpha=0.95,
         )
 
-    ax.axhline(1.0, color="gray", linestyle=":", linewidth=0.8)
+    # Reference line at lift = 1: thin gray dashed, drawn behind the bars
+    # but ahead of the gridlines. The methodology section interprets
+    # lift relative to 1 (alarms equal OOS magnitude on average).
+    ax.axhline(
+        1.0, color="gray", linestyle="--", linewidth=0.8,
+        zorder=0.5, label="lift = 1 (no skill)",
+    )
     ax.set_xticks(x)
     ax.set_xticklabels(sd_order)
     ax.set_xlabel("Stress definition (h, d)")
@@ -750,19 +756,33 @@ def plot_lift_with_ci(per_fold_df: pd.DataFrame, out_path: Path) -> None:
     plt.close(fig)
 
 
-def plot_reliability(predictions: pd.DataFrame, out_path: Path, n_bins: int = 10) -> None:
+def plot_reliability(predictions: pd.DataFrame, out_path: Path, n_bins: int = 10) -> dict:
+    """Reliability diagrams using equal-frequency (quantile) bins.
+
+    Drops NaiveBaseRate (constant scores collapse to a single bin and
+    contribute no calibration information). Returns a dict with the
+    per-model bin counts so the caller can print STATUS without
+    re-deriving them.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    models_to_plot = [m for m in ALL_MODELS if m != "NaiveBaseRate"]
+
     fig, axes = plt.subplots(2, 3, figsize=(11, 7), sharex=True, sharey=True)
-    axes = axes.ravel()
-    bins = np.linspace(0.0, 1.0, n_bins + 1)
-    for i, model in enumerate(ALL_MODELS):
-        ax = axes[i]
-        ax.plot([0, 1], [0, 1], "k--", linewidth=0.6)
+    axes_flat = axes.ravel()
+    bin_counts: dict[str, list[int]] = {}
+
+    for i, model in enumerate(models_to_plot):
+        ax = axes_flat[i]
+        # Diagonal first (zorder=1) so calibration markers render on top.
+        ax.plot(
+            [0, 1], [0, 1],
+            color="gray", linestyle="--", linewidth=0.6, zorder=1,
+        )
+
         sub = predictions[predictions["model"] == model]
-        # Average across seeds within (Date, fold_id)
         agg = (
             sub.groupby(["fold_id", "Date"])
             .agg(score=("score", "mean"), label=("label", "first"))
@@ -774,44 +794,89 @@ def plot_reliability(predictions: pd.DataFrame, out_path: Path, n_bins: int = 10
         s = s[valid]
         y = y[valid]
         if s.size == 0:
-            ax.text(0.5, 0.5, "no data", ha="center")
+            ax.text(0.5, 0.5, "no data", ha="center", transform=ax.transAxes)
             ax.set_title(model, fontsize=9)
+            bin_counts[model] = []
             continue
-        bin_idx = np.clip(np.digitize(s, bins[1:-1]), 0, n_bins - 1)
-        bin_pred = []
-        bin_obs = []
-        bin_w = []
-        for b in range(n_bins):
+
+        # Equal-frequency bins via pd.qcut; duplicates='drop' collapses
+        # tied boundaries into one effective bin, so the actual bin
+        # count may be smaller than n_bins on a low-variance score
+        # distribution. We record the realised counts for STATUS.
+        try:
+            bin_idx, bin_edges = pd.qcut(
+                s, q=n_bins, retbins=True, duplicates="drop", labels=False,
+            )
+        except ValueError:
+            ax.text(0.5, 0.5, "score distribution degenerate",
+                    ha="center", transform=ax.transAxes)
+            ax.set_title(model, fontsize=9)
+            bin_counts[model] = []
+            continue
+        bin_idx = np.asarray(bin_idx)
+        n_actual_bins = len(bin_edges) - 1
+
+        bin_pred: list[float] = []
+        bin_obs: list[float] = []
+        bin_n: list[int] = []
+        for b in range(n_actual_bins):
             m = bin_idx == b
             if m.any():
-                bin_pred.append(s[m].mean())
-                bin_obs.append(y[m].mean())
-                bin_w.append(m.sum() / s.size)
-        ax.scatter(bin_pred, bin_obs, s=[max(15, w * 600) for w in bin_w],
-                   alpha=0.7, edgecolor="black", linewidth=0.4)
+                bin_pred.append(float(s[m].mean()))
+                bin_obs.append(float(y[m].mean()))
+                bin_n.append(int(m.sum()))
+        bin_counts[model] = bin_n
+
+        # Marker size scales with sqrt(n) so sparse bins stay visible
+        # and dense bins are obvious. Floor of 20 keeps ones visible.
+        marker_sizes = [20.0 + 6.0 * float(np.sqrt(n)) for n in bin_n]
+        ax.scatter(
+            bin_pred, bin_obs, s=marker_sizes,
+            alpha=0.85, edgecolor="black", linewidth=0.4, zorder=2,
+        )
         ax.set_title(model, fontsize=9)
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
+        ax.grid(linestyle=":", linewidth=0.4)
 
-    for a in axes:
-        a.grid(linestyle=":", linewidth=0.4)
-    fig.text(0.5, 0.02, "Mean predicted probability per bin (h=10, d=5%)", ha="center")
-    fig.text(0.02, 0.5, "Empirical event rate per bin", va="center", rotation="vertical")
-    fig.suptitle("Reliability diagrams (h=10, d=5%)")
-    fig.tight_layout(rect=(0.04, 0.04, 1.0, 0.96))
+    # Hide the unused 6th panel after dropping NaiveBaseRate.
+    for j in range(len(models_to_plot), len(axes_flat)):
+        axes_flat[j].axis("off")
+
+    fig.text(0.5, 0.04,
+             "Mean predicted probability per bin (h=10, d=5%)",
+             ha="center")
+    fig.text(0.04, 0.5,
+             "Empirical event rate per bin",
+             va="center", rotation="vertical")
+    fig.suptitle(
+        "Reliability diagrams (h=10, d=5%) — equal-frequency bins, "
+        "marker size ∝ √n;  NaiveBaseRate omitted (constant predictions)",
+        fontsize=10,
+    )
+    fig.tight_layout(rect=(0.06, 0.06, 1.0, 0.94))
     fig.savefig(out_path, format="pdf")
     plt.close(fig)
 
+    return {"bin_counts": bin_counts}
 
-def plot_pr_curves(predictions: pd.DataFrame, out_path: Path) -> None:
+
+def plot_pr_curves(predictions: pd.DataFrame, out_path: Path) -> dict:
+    """PR curves with empirical base-rate reference line.
+
+    Returns a dict with per-model PR-AUC (average precision) values and
+    the empirical base rate computed from the pooled OOS labels (the
+    baseline that every model must beat to be useful).
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from sklearn.metrics import precision_recall_curve
+    from sklearn.metrics import average_precision_score, precision_recall_curve
 
-    fig, ax = plt.subplots(figsize=(7, 6))
-    colors = _palette(len(ALL_MODELS))
-    for i, model in enumerate(ALL_MODELS):
+    # First pass: compute pooled (score, label) per model and PR-AUC.
+    per_model: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    pr_aucs: dict[str, float] = {}
+    for model in ALL_MODELS:
         sub = predictions[predictions["model"] == model]
         agg = (
             sub.groupby(["fold_id", "Date"])
@@ -823,14 +888,54 @@ def plot_pr_curves(predictions: pd.DataFrame, out_path: Path) -> None:
         valid = ~(np.isnan(s) | np.isnan(y))
         s = s[valid]
         y = y[valid].astype(int)
+        per_model[model] = (s, y)
+        if s.size > 0 and np.unique(y).size >= 2:
+            pr_aucs[model] = float(average_precision_score(y, s))
+        else:
+            pr_aucs[model] = float("nan")
+
+    # Empirical base rate: positive class rate on pooled OOS labels.
+    # Labels are identical across models for a given (fold, Date), so
+    # we can pull from any model. Pick the first model with non-empty
+    # data to get the labels.
+    base_rate = float("nan")
+    for model in ALL_MODELS:
+        _, y = per_model[model]
+        if y.size > 0:
+            base_rate = float(y.mean())
+            break
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(7.5, 6.0))
+    colors = _palette(len(ALL_MODELS))
+    for i, model in enumerate(ALL_MODELS):
+        s, y = per_model[model]
+        ap = pr_aucs[model]
         if s.size == 0 or np.unique(y).size < 2:
             ax.plot([], [], label=f"{model} (no data)")
             continue
         precision, recall, _ = precision_recall_curve(y, s)
-        ax.plot(recall, precision, label=model, color=colors[i], linewidth=1.4)
+        ax.plot(
+            recall, precision,
+            color=colors[i], linewidth=1.4,
+            label=f"{model}  (AP = {ap:.3f})",
+        )
 
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    # Base-rate reference line; the no-skill PR curve has y = base_rate.
+    if not np.isnan(base_rate):
+        ax.axhline(
+            base_rate, color="gray", linestyle="--", linewidth=0.8,
+            label=f"Random baseline (base rate = {100.0 * base_rate:.2f}%)",
+        )
+
+    # Y-axis: [0, max(PR-AUC) * 2] so the curves are visually
+    # distinguishable instead of all hugging y = 0.
+    valid_aucs = [v for v in pr_aucs.values() if not np.isnan(v)]
+    ylim_top = max(valid_aucs) * 2.0 if valid_aucs else 1.0
+    ylim_top = max(ylim_top, (base_rate * 2.0) if not np.isnan(base_rate) else 0.0)
+
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, ylim_top)
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
     ax.set_title("Precision-recall curves (h=10, d=5%)")
@@ -839,6 +944,8 @@ def plot_pr_curves(predictions: pd.DataFrame, out_path: Path) -> None:
     fig.tight_layout()
     fig.savefig(out_path, format="pdf")
     plt.close(fig)
+
+    return {"pr_aucs": pr_aucs, "base_rate": base_rate}
 
 
 # =====================================================================
