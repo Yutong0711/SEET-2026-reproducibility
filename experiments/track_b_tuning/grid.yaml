@@ -1,0 +1,11 @@
+# Track B LightGBM hyperparameter grid.
+# 4 x 3 x 3 x 3 x 2 x 2 x 2 = 864 combinations.
+# class_weight is fixed at "balanced" inside seet.tuning and seet.baselines;
+# the tuning loop does not search over it.
+max_depth:         [2, 3, 4, 5]
+num_leaves:        [5, 15, 31]
+n_estimators:      [50, 200, 500]
+learning_rate:     [0.01, 0.03, 0.1]
+min_child_samples: [20, 80]
+reg_alpha:         [0.0, 2.0]
+reg_lambda:        [0.0, 10.0]
