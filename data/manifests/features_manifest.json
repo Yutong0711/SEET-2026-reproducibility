@@ -1,0 +1,896 @@
+{
+  "ndx_2007": {
+    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "feature_count": 12,
+    "feature_set_id": "ndx_minimal",
+    "features": [
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "NDX.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "NDX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "NDX.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "NDX.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "log(NDX / NDX.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "log(NDX/NDX.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "log(NDX/NDX.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "NDX"
+        ],
+        "feature_group": 1,
+        "formula": "NDX / NDX.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VXN"
+        ],
+        "feature_group": 2,
+        "formula": "VXN.diff(1)",
+        "lookback_window": 2,
+        "name": "vxn_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VXN"
+        ],
+        "feature_group": 2,
+        "formula": "VXN.diff(5)",
+        "lookback_window": 6,
+        "name": "vxn_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VXN"
+        ],
+        "feature_group": 2,
+        "formula": "VXN.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vxn_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VXN"
+        ],
+        "feature_group": 2,
+        "formula": "VXN.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vxn_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/ndx_2007_features.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 4863,
+    "schema_version": 1,
+    "sha256": "3a8e4170ef2b187edee436b21b5d72fba337fdd5216edea430d2f1ad474a0dd1",
+    "source_panel": "ndx_2007",
+    "source_panel_sha256": "054705a04876d3a870676b27a6b51d6f1badb4fe5e6fb4e3dbd7a215092d2770"
+  },
+  "rut_2009": {
+    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "feature_count": 12,
+    "feature_set_id": "rut_minimal",
+    "features": [
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "RUT.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "RUT.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "RUT.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "RUT.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "log(RUT / RUT.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "log(RUT/RUT.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "log(RUT/RUT.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RUT"
+        ],
+        "feature_group": 1,
+        "formula": "RUT / RUT.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RVX"
+        ],
+        "feature_group": 2,
+        "formula": "RVX.diff(1)",
+        "lookback_window": 2,
+        "name": "rvx_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RVX"
+        ],
+        "feature_group": 2,
+        "formula": "RVX.diff(5)",
+        "lookback_window": 6,
+        "name": "rvx_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RVX"
+        ],
+        "feature_group": 2,
+        "formula": "RVX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "rvx_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "RVX"
+        ],
+        "feature_group": 2,
+        "formula": "RVX.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "rvx_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/rut_2009_features.csv",
+    "first_date": "2009-09-16",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 4182,
+    "schema_version": 1,
+    "sha256": "a6d3d3dd24a591b82edf13e2dc98312fc9b7682a5e4f30bd8ab3d91b9efa05d5",
+    "source_panel": "rut_2009",
+    "source_panel_sha256": "ad887d182c025cab083c320a990748cbc163352ccb366c5e27a82d4d5ec626f2"
+  },
+  "spx_core_2007": {
+    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "feature_count": 23,
+    "feature_set_id": "spx_core",
+    "features": [
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX / SPX.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX/SPX.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX/SPX.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX / SPX.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.diff(1)",
+        "lookback_window": 2,
+        "name": "vix_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.diff(5)",
+        "lookback_window": 6,
+        "name": "vix_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.diff(1)",
+        "lookback_window": 2,
+        "name": "vix3m_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.diff(5)",
+        "lookback_window": 6,
+        "name": "vix3m_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix3m_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix3m_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "VIX3M - VIX",
+        "lookback_window": 1,
+        "name": "vix3m_minus_vix",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX",
+          "VIX3M"
+        ],
+        "feature_group": 3,
+        "formula": "VIX / VIX3M",
+        "lookback_window": 1,
+        "name": "ratio_vix_vix3m",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX",
+          "VIX3M"
+        ],
+        "feature_group": 3,
+        "formula": "int(VIX > VIX3M); NaN if either NaN",
+        "lookback_window": 1,
+        "name": "curve_inversion",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.diff(1)",
+        "lookback_window": 2,
+        "name": "vvix_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.diff(5)",
+        "lookback_window": 6,
+        "name": "vvix_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vvix_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vvix_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/spx_core_2007_features.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 4863,
+    "schema_version": 1,
+    "sha256": "d22441b805a8301893aa09c2c2ffdaadbde115c98b01ef40d1f73565bacbf3ab",
+    "source_panel": "spx_core_2007",
+    "source_panel_sha256": "3719b91d158205e6b3c0126bef81dc1e3a9cda3537b591304d1975525cdb1531"
+  },
+  "spx_extended_2011": {
+    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "feature_count": 35,
+    "feature_set_id": "spx_full",
+    "features": [
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX / SPX.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX/SPX.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "log(SPX/SPX.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "SPX"
+        ],
+        "feature_group": 1,
+        "formula": "SPX / SPX.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.diff(1)",
+        "lookback_window": 2,
+        "name": "vix_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.diff(5)",
+        "lookback_window": 6,
+        "name": "vix_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX"
+        ],
+        "feature_group": 2,
+        "formula": "VIX.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D"
+        ],
+        "feature_group": 2,
+        "formula": "VIX9D.diff(1)",
+        "lookback_window": 2,
+        "name": "vix9d_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D"
+        ],
+        "feature_group": 2,
+        "formula": "VIX9D.diff(5)",
+        "lookback_window": 6,
+        "name": "vix9d_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D"
+        ],
+        "feature_group": 2,
+        "formula": "VIX9D.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix9d_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D"
+        ],
+        "feature_group": 2,
+        "formula": "VIX9D.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix9d_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.diff(1)",
+        "lookback_window": 2,
+        "name": "vix3m_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.diff(5)",
+        "lookback_window": 6,
+        "name": "vix3m_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix3m_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX3M.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix3m_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX6M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX6M.diff(1)",
+        "lookback_window": 2,
+        "name": "vix6m_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX6M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX6M.diff(5)",
+        "lookback_window": 6,
+        "name": "vix6m_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX6M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX6M.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vix6m_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX6M"
+        ],
+        "feature_group": 2,
+        "formula": "VIX6M.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vix6m_pctile_252d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX3M",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "VIX3M - VIX",
+        "lookback_window": 1,
+        "name": "vix3m_minus_vix",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX",
+          "VIX3M"
+        ],
+        "feature_group": 3,
+        "formula": "VIX / VIX3M",
+        "lookback_window": 1,
+        "name": "ratio_vix_vix3m",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX",
+          "VIX3M"
+        ],
+        "feature_group": 3,
+        "formula": "int(VIX > VIX3M); NaN if either NaN",
+        "lookback_window": 1,
+        "name": "curve_inversion",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX6M",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "VIX6M - VIX",
+        "lookback_window": 1,
+        "name": "vix6m_minus_vix",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "VIX9D - VIX",
+        "lookback_window": 1,
+        "name": "vix9d_minus_vix",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "VIX9D / VIX",
+        "lookback_window": 1,
+        "name": "ratio_vix9d_vix",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VIX9D",
+          "VIX"
+        ],
+        "feature_group": 3,
+        "formula": "int(VIX9D > VIX); NaN if either NaN",
+        "lookback_window": 1,
+        "name": "short_end_spike",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.diff(1)",
+        "lookback_window": 2,
+        "name": "vvix_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.diff(5)",
+        "lookback_window": 6,
+        "name": "vvix_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vvix_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VVIX"
+        ],
+        "feature_group": 4,
+        "formula": "VVIX.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vvix_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/spx_extended_2011_features.csv",
+    "first_date": "2011-02-23",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 3820,
+    "schema_version": 1,
+    "sha256": "57d6a09b9a248ba2295429dac571bdc1382cf979828b22af7db92df8bbcd80e2",
+    "source_panel": "spx_extended_2011",
+    "source_panel_sha256": "dbe887c0eaf1b294d7c1b19fc2b1207a7b2bef4b69993b73bb65cac490929a11"
+  }
+}
