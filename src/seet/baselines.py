@@ -290,9 +290,22 @@ class LogisticRegressionL2:
 # ----------------------------------------------------------------------
 
 class LightGbmTuned:
-    """LightGBM with Track A placeholder hyperparameters. Track B will
-    replace these. Falls back to constant prediction when training data
-    has only one class."""
+    """LightGBM. Hyperparameters are either Track A placeholder defaults
+    or, if `stress_def`, `outer_fold`, and `hp_path` are all provided,
+    loaded from `experiments/track_b_tuning/selected_hp.csv` (or
+    equivalent) keyed by (stress_def, outer_fold). Loaded params are
+    augmented with `class_weight='balanced'` if absent from the CSV.
+
+    Falls back to a constant-prediction model when training data has
+    only one class.
+
+    Attributes
+    ----------
+    params : dict
+        The actual LightGBM kwargs that will be passed to LGBMClassifier.
+    _source : {"loaded", "default"}
+        Where `params` came from. Useful for tests and provenance.
+    """
 
     DEFAULT_HPS: dict = dict(
         max_depth=2,
@@ -305,14 +318,75 @@ class LightGbmTuned:
         class_weight="balanced",
     )
 
-    def __init__(self, seed: int = 42, **kwargs):
+    def __init__(
+        self,
+        seed: int = 42,
+        stress_def: str | None = None,
+        outer_fold: int | None = None,
+        hp_path=None,
+        **kwargs,
+    ):
         self.seed = int(seed)
-        self.params = dict(self.DEFAULT_HPS)
+        self.stress_def = stress_def
+        self.outer_fold = (
+            int(outer_fold) if outer_fold is not None else None
+        )
+        self.hp_path = hp_path
+
+        loaded = None
+        if (
+            self.stress_def is not None
+            and self.outer_fold is not None
+            and self.hp_path is not None
+        ):
+            loaded = self._try_load(
+                self.hp_path, self.stress_def, self.outer_fold
+            )
+
+        if loaded is not None:
+            # class_weight='balanced' is the project-wide convention for
+            # this baseline; ensure it's present even if the CSV doesn't
+            # carry it (the Track B grid does not search over it).
+            self.params = {"class_weight": "balanced", **loaded}
+            self._source = "loaded"
+        else:
+            self.params = dict(self.DEFAULT_HPS)
+            self._source = "default"
+
+        # Allow explicit kwargs to override anything we just loaded.
         for k, v in kwargs.items():
-            if k in self.DEFAULT_HPS:
+            if k in self.params or k in self.DEFAULT_HPS:
                 self.params[k] = v
+
         self.model_: lgb.LGBMClassifier | None = None
         self._single_class: float | None = None
+
+    @staticmethod
+    def _try_load(
+        hp_path, stress_def: str, outer_fold: int
+    ) -> "dict | None":
+        """Look up the (stress_def, outer_fold) row in the selected_hp
+        CSV. Returns the parsed best_params dict, or None on any
+        failure (file missing, no matching row, malformed JSON)."""
+        import json
+
+        try:
+            df = pd.read_csv(hp_path)
+        except (FileNotFoundError, pd.errors.EmptyDataError, OSError):
+            return None
+        required = {"stress_def", "outer_fold", "best_params"}
+        if not required.issubset(df.columns):
+            return None
+        match = df[
+            (df["stress_def"] == stress_def)
+            & (df["outer_fold"].astype(int) == int(outer_fold))
+        ]
+        if match.empty:
+            return None
+        try:
+            return json.loads(str(match.iloc[0]["best_params"]))
+        except (json.JSONDecodeError, ValueError):
+            return None
 
     def fit(self, X, y):
         Xa = _to_array(X)

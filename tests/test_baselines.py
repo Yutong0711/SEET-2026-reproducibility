@@ -211,3 +211,142 @@ def test_registry_partition():
 def test_make_model_unknown_name_raises():
     with pytest.raises(ValueError, match="Unknown model"):
         make_model("definitely_not_a_model")
+
+
+# ----------------------------------------------------------------------
+# Track B: LightGbmTuned hyperparameter loading from selected_hp.csv
+# ----------------------------------------------------------------------
+
+def test_lightgbm_loads_selected_hp_from_csv(tmp_path):
+    """When stress_def, outer_fold, and hp_path are all provided AND a
+    matching row exists, LightGbmTuned should adopt the params from the
+    CSV (with class_weight defaulted to 'balanced')."""
+    import json
+    csv_path = tmp_path / "selected_hp.csv"
+    payload = {
+        "max_depth": 4,
+        "num_leaves": 31,
+        "n_estimators": 200,
+        "learning_rate": 0.1,
+        "min_child_samples": 20,
+        "reg_alpha": 0.0,
+        "reg_lambda": 10.0,
+    }
+    df = pd.DataFrame(
+        [
+            {
+                "stress_def": "h5_d03",
+                "outer_fold": 1,
+                "best_params": json.dumps(payload, sort_keys=True),
+                "inner_pr_auc": 0.15,
+                "search_method": "grid",
+                "n_combinations_tried": 864,
+                "wall_time_sec": 100.0,
+            },
+            # A second row that should NOT be picked.
+            {
+                "stress_def": "h10_d05",
+                "outer_fold": 1,
+                "best_params": json.dumps({"max_depth": 2}, sort_keys=True),
+                "inner_pr_auc": 0.12,
+                "search_method": "grid",
+                "n_combinations_tried": 864,
+                "wall_time_sec": 100.0,
+            },
+        ]
+    )
+    df.to_csv(csv_path, index=False)
+
+    model = LightGbmTuned(
+        seed=42, stress_def="h5_d03", outer_fold=1, hp_path=csv_path
+    )
+    assert model._source == "loaded"
+    for k, v in payload.items():
+        assert model.params[k] == v, f"{k}: {model.params[k]} != {v}"
+    assert model.params["class_weight"] == "balanced"
+    # Picked the right row, not the h10_d05 one.
+    assert model.params["max_depth"] == 4
+
+
+def test_lightgbm_falls_back_to_default_when_no_csv_args():
+    """Without (stress_def, outer_fold, hp_path) all provided,
+    LightGbmTuned uses the placeholder DEFAULT_HPS."""
+    model = LightGbmTuned(seed=42)
+    assert model._source == "default"
+    assert model.params == LightGbmTuned.DEFAULT_HPS
+
+
+def test_lightgbm_falls_back_when_csv_missing(tmp_path):
+    """A non-existent CSV path falls back cleanly to defaults."""
+    model = LightGbmTuned(
+        seed=42,
+        stress_def="h5_d03",
+        outer_fold=1,
+        hp_path=tmp_path / "does_not_exist.csv",
+    )
+    assert model._source == "default"
+    assert model.params == LightGbmTuned.DEFAULT_HPS
+
+
+def test_lightgbm_falls_back_when_no_matching_row(tmp_path):
+    """A CSV that doesn't contain the requested (stress_def, outer_fold)
+    pair falls back to defaults."""
+    import json
+    csv_path = tmp_path / "selected_hp.csv"
+    df = pd.DataFrame(
+        [
+            {
+                "stress_def": "h10_d05",
+                "outer_fold": 5,
+                "best_params": json.dumps({"max_depth": 4}, sort_keys=True),
+                "inner_pr_auc": 0.10,
+                "search_method": "grid",
+                "n_combinations_tried": 864,
+                "wall_time_sec": 100.0,
+            },
+        ]
+    )
+    df.to_csv(csv_path, index=False)
+    model = LightGbmTuned(
+        seed=42, stress_def="h5_d03", outer_fold=1, hp_path=csv_path,
+    )
+    assert model._source == "default"
+    assert model.params == LightGbmTuned.DEFAULT_HPS
+
+
+def test_lightgbm_loaded_params_actually_train(tmp_path):
+    """End-to-end: LightGbmTuned with loaded HPs should fit and
+    predict_proba just like the default-HP version, without raising."""
+    import json
+    csv_path = tmp_path / "selected_hp.csv"
+    payload = {
+        "max_depth": 3,
+        "num_leaves": 15,
+        "n_estimators": 50,
+        "learning_rate": 0.1,
+        "min_child_samples": 20,
+        "reg_alpha": 0.0,
+        "reg_lambda": 0.0,
+    }
+    df = pd.DataFrame(
+        [
+            {
+                "stress_def": "h5_d03",
+                "outer_fold": 1,
+                "best_params": json.dumps(payload, sort_keys=True),
+                "inner_pr_auc": 0.15,
+                "search_method": "grid",
+                "n_combinations_tried": 864,
+                "wall_time_sec": 50.0,
+            }
+        ]
+    )
+    df.to_csv(csv_path, index=False)
+
+    X, y = _synthetic_features()
+    model = LightGbmTuned(
+        seed=42, stress_def="h5_d03", outer_fold=1, hp_path=csv_path,
+    ).fit(X, y)
+    proba = model.predict_proba(X)
+    assert proba.shape == (len(X), 2)
+    assert np.allclose(proba.sum(axis=1), 1.0, atol=1e-9)
