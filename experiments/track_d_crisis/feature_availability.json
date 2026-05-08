@@ -1,0 +1,64 @@
+{
+  "crisis_2008": {
+    "available_features": [
+      "ret_1d",
+      "ret_5d",
+      "ret_10d",
+      "ret_20d",
+      "logret_1d",
+      "rv_10d",
+      "rv_20d",
+      "drawdown_20d",
+      "vix_chg_1d",
+      "vix_chg_5d",
+      "vix_pctchg_5d"
+    ],
+    "dropped_features": {
+      "*_pctile_252d": "spx_core_2007 panel starts 2007-01-03; only ~251 trading days at train_end=2007-12-31, leaving zero valid rows after 252-day rolling-rank warmup.",
+      "term_structure_*": "Group 3 features (vix3m_minus_vix, etc.) require VIX3M/VIX9D/VIX6M which are unavailable.",
+      "vix3m_*": "VIX3M (originally VXV) launched 2007-12-04; only ~20 days of usable history at train_end.",
+      "vix6m_*": "VIX6M launched 2008-01-02; not available at train_end=2007-12-31.",
+      "vix9d_*": "VIX9D launched 2011-02-23; not available at train_end=2007-12-31.",
+      "vvix_*": "VVIX truncated to 2012-04-01 in the processed layer; entirely NaN through Crisis-2008 window."
+    },
+    "feature_set_id": "spx_crisis_2008",
+    "n_features": 11,
+    "panel": "spx_core_2007",
+    "test_end": "2009-12-31",
+    "test_start": "2008-01-01",
+    "train_end": "2007-12-31"
+  },
+  "crisis_2020": {
+    "headline": {
+      "feature_set_id": "spx_full",
+      "n_features": 35,
+      "panel": "spx_extended_2011",
+      "rationale": "spx_full is the full SPX vol family from Track A; all 35 features have ample history at train_end=2019-12-31.",
+      "test_end": "2020-12-31",
+      "test_start": "2020-01-01",
+      "train_end": "2019-12-31"
+    },
+    "recovery_for_f4": {
+      "applies_to_models": [
+        "LogisticRegressionL2",
+        "LightGbmTuned"
+      ],
+      "feature_set_id": "spx_no_vvix",
+      "n_features": 31,
+      "panel": "spx_extended_2011",
+      "rationale": "F4 recovery: spx_full's LR and LightGbmTuned cells are NaN under Crisis-2020 because vvix_pctile_252d propagates documented VVIX gaps (2019-07-05, 2020-06-11) through the entire test window. Removing the 4 VVIX-derived features eliminates the cascade. The four panel-DataFrame baselines (NaiveBaseRate, VIXPercentileRaw, VIXPercentileCalibrated, HarRvThreshold) keep their valid spx_full results \u2014 they do not read the feature matrix and were unaffected by F4.",
+      "test_end": "2020-12-31",
+      "test_start": "2020-01-01",
+      "train_end": "2019-12-31"
+    },
+    "robustness_check": {
+      "feature_set_id": "spx_crisis_2008",
+      "n_features": 11,
+      "panel": "spx_extended_2011",
+      "rationale": "Symmetric feature set with Crisis-2008 (11 features) for cross-crisis comparability under D3 override.",
+      "test_end": "2020-12-31",
+      "test_start": "2020-01-01",
+      "train_end": "2019-12-31"
+    }
+  }
+}

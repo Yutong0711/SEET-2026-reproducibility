@@ -1,0 +1,4 @@
+stress_def,fold_id,train_end,test_start,test_end,n_train,n_test,n_dropped_h,n_train_dropped_nan_features,n_test_dropped_nan_features
+h5_d03,1,2007-12-31,2008-01-01,2009-12-31,251,505,0,20,0
+h10_d05,1,2007-12-31,2008-01-01,2009-12-31,251,505,0,20,0
+h20_d07,1,2007-12-31,2008-01-01,2009-12-31,251,505,0,20,0
