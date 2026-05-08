@@ -248,7 +248,101 @@ labels:
 - Track B: TBD
 - Track C: TBD
 - Track D: TBD
-- Track E: TBD
+- Track E: **component ablation experiments — DONE**. Four
+  controlled ablations of the reference architecture, run on the
+  Track A central case (SPX, `spx_extended_2011`, `spx_full`, h10_d05,
+  22 expanding-window folds, 6 baselines, seeds 42–46). Per-fold
+  deltas are paired against Track A on `(model, fold_id, seed)`;
+  CIs use a paired bootstrap (10k resamples, fold-level resampling
+  preserves pairing — see `stats.paired_bootstrap_ci`); significance
+  is paired Wilcoxon signed-rank.
+
+  - **ABLATION_1 (no_validators)**. Bypasses pre-launch truncation +
+    data-quality NaN flagging by feeding a panel rebuilt from
+    `data/raw/` (35 pre-anchor rows + 279 VVIX synthetic-backfill
+    rows from 2011-02-23 → 2012-03-30, kept as if real).
+    **Finding (paper-relevant):** LR AUC inflates by **+0.035** (95%
+    paired CI [+0.014, +0.057], Wilcoxon p = 0.005) — empirical
+    confirmation of the synthetic-backfill leakage hypothesis. Other
+    models do not show meaningful AUC inflation.
+  - **ABLATION_2 (global_scaler)**. Replaces LR's per-fold
+    `StandardScaler` with one fit on the entire feature matrix
+    (train ∪ test). LightGBM is unaffected by construction (it has
+    no scaler in the unmodified pipeline; tagged
+    `no_effect_by_construction`). **Finding (paper-relevant,
+    contrast):** LR delta_AUC = **−0.003** (CI [−0.005, −0.001], p =
+    0.002) — statistically significant but operationally negligible.
+    The architecture's predicted impact (look-ahead through scaler
+    fitting) materializes, but the magnitude is much smaller than
+    the validator-leakage or drift signals. Different leakage
+    vectors have different consequences.
+  - **ABLATION_3 (test_threshold)**. Replaces the training-quantile
+    alarm threshold (95th pct of train scores) with a fixed top-5%
+    test-set threshold (the v1 paper's behavior). **Findings
+    (paper-relevant):** LightGBM drawdown_lift drops by **−0.154**
+    (CI [−0.277, −0.033], p = 0.007); HarRvThreshold drawdown_lift
+    *rises* by **+0.195** (CI [+0.065, +0.332], p = 0.028) — a real
+    finding flagged for retention, not investigated-then-explained;
+    LightGBM calm-period alarm rate inflates by **+0.054** (CI
+    [+0.024, +0.088], p = 0.001), with similar ~5pp inflations
+    across HarRv (+0.055), VIXPercentileRaw (+0.054), and
+    VIXPercentileCalibrated (+0.034). NaiveBaseRate is unaffected by
+    construction (constant predictor).
+  - **ABLATION_4 (frozen_model)**. Each model is fit once on data
+    through 2014-12-31 and applied frozen to every later test fold
+    (no refitting, no per-fold HP lookup). For LightGBM the HPs
+    selected by Track B for outer_fold=1 are used. **Findings
+    (paper-relevant):** LightGBM drawdown_lift falls by **−0.540**
+    (CI [−0.821, −0.283], p = 0.001); LR drawdown_lift falls by
+    **−0.279** (CI [−0.452, −0.108], p = 0.003) — these are the
+    largest operational impacts in Track E and the strongest evidence
+    that ML baselines are drift-sensitive. Deterministic baselines
+    (NaiveBaseRate, VIXPercentileRaw, VIXPercentileCalibrated,
+    HarRvThreshold) show no significant drawdown_lift change. The
+    **most degraded** model is LightGBM, the **most resistant** is
+    HarRvThreshold (delta_lift = +0.043, p = 0.93). A secondary
+    pattern — frozen models showing improved Brier on LightGBM
+    (delta = −0.036, p = 7e-6) and LR (delta = −0.023, p = 0.015) —
+    is documented as a Brier-vs-refit calibration interaction in
+    rare-event settings, not a paper finding.
+
+  Each row of `outputs/track_e/table_ablation.csv` (144 rows, =
+  4 ablations × 6 models × 6 metrics) carries two annotation
+  columns:
+  - `interpretation` ∈ {`paper_relevant_finding` (7 cells, the
+    findings above), `no_effect_by_construction` (71 cells —
+    deterministic baselines on irrelevant ablations or
+    floating-point-zero deltas), `expected_effect` (66 cells — the
+    architecture's predicted impacts), `investigate` (0 cells —
+    the annotation aims to leave this empty)}
+  - `effect_size_category` ∈ {`large` (>0.05), `medium` (0.01–0.05),
+    `small` (0.001–0.01), `negligible` (≤0.001)}; 13 large, 22
+    medium, 19 small, 90 negligible. Statistical significance with
+    negligible effect size is common in this dataset because
+    deterministic baselines produce exactly-zero deltas under most
+    ablations — the size category lets the paper distinguish
+    "significant and important" from "significant but tiny".
+
+  **F5 (sibling failure mode).** Track E ABLATION_1 demonstrates
+  that an SE-style data-validation stage (truncation of synthetic
+  pre-launch backfill, flagging of documented data-quality gaps)
+  is load-bearing for classification quality, not just for data
+  hygiene. Removing it produces a +0.035 AUC inflation on
+  matrix-feature LR — a leakage path the v1 paper would not have
+  caught because it did not separate validators from feature
+  construction.
+
+  Artifacts:
+  ```
+  experiments/track_e_ablation/per_fold_no_validators.csv
+  experiments/track_e_ablation/per_fold_global_scaler.csv
+  experiments/track_e_ablation/per_fold_test_threshold.csv
+  experiments/track_e_ablation/per_fold_frozen_model.csv
+  experiments/track_e_ablation/no_validators_provenance.json
+  outputs/track_e/table_ablation.csv         (144 rows, 10 columns)
+  outputs/track_e/fig_ablation_lift.pdf      (forest plot, drawdown_lift)
+  outputs/track_e/fig_ablation_auc.pdf       (forest plot, AUC)
+  ```
 - Track F: TBD
 - Track G: TBD
 
