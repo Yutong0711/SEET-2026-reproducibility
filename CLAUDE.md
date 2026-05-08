@@ -343,7 +343,161 @@ labels:
   outputs/track_e/fig_ablation_lift.pdf      (forest plot, drawdown_lift)
   outputs/track_e/fig_ablation_auc.pdf       (forest plot, AUC)
   ```
-- Track F: TBD
+- Track F: **failure injection / mutation testing — DONE**.
+  Mutation-style testing of the data-validation layer. Five
+  corruption modes (C1 duplicate_dates, C2 missing_values, C3
+  stale_quotes, C4 extreme_jumps, C5 calendar_gaps) are applied
+  to in-memory copies of the canonical SPX panel at three rates
+  (1%, 5%, 10%) with five seeds each. For every cell the script
+  measures (i) whether the V1+V2 validators catch the corruption
+  and (ii) what happens to LR + LightGBM downstream metrics when
+  the validators are silenced. Pairing is per (model, fold_id,
+  lgbm_seed) within the same corrupted panel; CIs use a paired
+  bootstrap (10k resamples, fold-level resampling preserves
+  pairing).
+
+  **Architectural improvement (paper-relevant in itself).** Track
+  F created an explicit `src/seet/validators.py` module that
+  codifies build-time (`scripts/build_processed.py` truncation
+  rules) and audit-script (`scripts/audit_panels.py` duplicate
+  + NaN-region classifier) logic into a callable runtime
+  component with a clean `validate_panel` / `apply_treatment` /
+  `coverage_metrics` API. This act of making implicit validation
+  explicit is itself an architectural improvement that the
+  failure-injection methodology surfaced — the v1 codebase had
+  validation rules scattered across build scripts and audit
+  scripts, with no single callable surface; without that surface,
+  none of the rest of Track F (silenced-branch comparisons,
+  precision/recall accounting, mechanism classification) would
+  have been writable.
+
+  **Three findings (matching the user-specified STATUS structure):**
+
+  - **(a) Detection coverage by corruption type and rate**.
+    Validators V1 (duplicate Date) and V2 (NaN-vs-data_quality_notes)
+    catch C1 and C2 with **recall = 1.000 across all rates** (perfect
+    coverage). C3 and C4 corruption flow through silently —
+    **recall = 0.000 across all rates** (`gap_mechanism = silent_ignore`,
+    no rule). C5 corruption removes rows before the validator can
+    inspect them — **recall undefined** (`gap_mechanism =
+    removed_before_inspection`, n_truth = 0 by construction).
+
+  - **(b) Operational cost of silenced detection on caught
+    corruptions (C1, C2).** For C1 (duplicate_dates) silencing the
+    validator produces a small operational delta on the matrix-
+    feature models: at rate=5%, LightGBM AUC delta = +0.042
+    (CI [+0.028, +0.056], p < 0.001) and LR AUC delta = −0.021
+    (p = 0.018) — both statistically significant but tiny in
+    magnitude (`small` effect size). drawdown_lift deltas are not
+    significant (e.g. LightGBM rate=5% delta = +0.095, p = 0.51).
+    The architectural value of V1 is therefore data hygiene and
+    downstream auditability, not a large performance impact — true
+    duplicate rows mostly bias training slightly without changing
+    the model's discriminative power on h10_d05. For C2
+    (missing_values) the standard paired-delta cells report
+    `delta = NaN` (`n_pairs = 0`) because the SILENCED branch
+    produces all-NaN metrics — see (c) and the branch-failure
+    finding below.
+
+    **Methodological finding (Track F's own contribution).** The
+    initial C1 corruption design copied values from a random source
+    row (an apparently-benign choice). Diagnostic scripts
+    `scripts/diagnose_track_f_c1.py` (single-fold check) and
+    `scripts/diagnose_track_f_c1_all_folds.py` (all-fold scan)
+    revealed that this produced synthetic stress events whenever a
+    future-dated source row's SPX was inserted at an earlier target
+    date: 11 of 33 valid (fold, injection_seed) cells exhibited
+    SILENCED lift ≥ 4.0 vs a Track A baseline of ≈ 1.3, with one
+    cell at lift = 17.57 on a fold with `n_events = 0`. The
+    leakage was traced to the corrupted panel itself: the duplicate
+    row's `future_drawdown` was computed against the panel's real
+    later prices, producing artificial label = 1 (synthetic stress
+    event) which the model then "correctly" alarmed on,
+    artificially inflating lift. Corrected to true-duplicate
+    semantics (same Date AND same values; see updated
+    `_corrupt_duplicate_dates` docstring) and re-ran only the 15 C1
+    cells via `scripts/rerun_track_f_c1_only.py`. V1 still detects
+    with recall = 1.0 by construction. Lesson for the paper: the
+    mutation-testing methodology must verify that each corruption
+    injects only the failure mode it is named for, not a confounded
+    mixture; the same diagnostic scaffolding that surfaces
+    validator gaps also catches confounded-corruption bugs.
+
+  - **(c) Architectural validation gap (C3, C4, C5).** The three
+    corruption types the v1 architecture cannot detect produce
+    delta = 0.000 in the standard ENABLED-vs-SILENCED contrast (no
+    validator fires, the same panel feeds both branches). To
+    quantify the **operational cost of these uncaught corruptions**
+    we computed `delta_vs_clean = metric(SILENCED, corrupted) −
+    metric(Track A, clean)` per (model, fold, lgbm_seed) pair and
+    aggregated with the same paired bootstrap +
+    Wilcoxon (script `scripts/compute_track_f_silenced_vs_clean.py`,
+    output `outputs/track_f/table_silenced_vs_clean.csv`). The
+    matrix-feature LightGBM model is significantly degraded by all
+    three uncaught corruption types — drawdown_lift falls by
+    **−0.13 to −0.27** (large effect size, p < 0.01 in 6 of 9
+    cells); AUC falls by **−0.01 to −0.05** (small effect size, p <
+    0.001 in 6 of 9 cells). LR is largely unaffected (mixed signs
+    and smaller magnitudes), reflecting heavy L2 regularization +
+    StandardScaler clipping the influence of feature outliers. This
+    is the architectural-gap impact statement the paper needs:
+    uncaught corruption costs the boosted-tree model 0.13–0.27 in
+    lift even though the validators don't know the corruption is
+    there. Adding C3/C4/C5 detection rules is an architectural
+    extension point with quantified expected gain.
+
+  **Branch-failure finding (stronger than a small delta).** The
+  paired-bootstrap output for C2 missing_values reports `delta = NaN`
+  not because there is no effect, but because the SILENCED branch
+  has **complete model failure**. The post-process at
+  `outputs/track_f/table_branch_failure.csv` (built by
+  `scripts/rerun_track_f_postprocess.py`) shows that for C2 at all
+  rates, ENABLED produces valid drawdown_lift on ~50–60% of folds
+  (matching the canonical Track A rate, since AUC is undefined on
+  calm folds by construction), while SILENCED produces **0% valid
+  drawdown_lift** at all rates. The mechanism: a corrupted SPX cell
+  propagates NaN through rolling-window features for up to 252
+  trailing rows; with ~38 corrupted SPX cells at rate=1% spread over
+  ~3,820 panel rows, the rolling-window NaN regions overlap to cover
+  essentially every row. `_fit_predict_one` then sees fewer than 10
+  valid training rows and the matrix-feature models can't fit. The
+  validator turns "complete model failure" into "valid model fit",
+  which is a bigger operational finding than a small numerical delta.
+  Post-fix C1 (true-duplicate semantics) does NOT trigger branch
+  failure — both branches succeed at similar rates because true
+  duplicates only minimally distort training; C2 is the unique
+  catastrophic-failure case in Track F's corruption set.
+
+  **F6 (sibling failure mode).** Failure-injection on the data
+  layer surfaced a previously-unnamed failure mode: **silent
+  validator gaps** — corruption types the architecture has no rule
+  for (C3, C4, C5 here). Their operational cost is unobservable
+  through ENABLED-vs-SILENCED contrast precisely because silencing
+  a non-existent validator is a no-op. The mitigation is to add
+  rules; the diagnostic is mutation testing, which makes the absence
+  of a rule visible.
+
+  Artifacts:
+  ```
+  src/seet/validators.py                              (V1+V2 + treatment + coverage)
+  src/seet/injection.py                               (5 corruption modes, deterministic RNG;
+                                                       C1 = true-duplicate semantics post-fix)
+  scripts/run_track_f.py                              (75-cell experiment runner)
+  scripts/rerun_track_f_postprocess.py                (branch-failure post-process)
+  scripts/compute_track_f_silenced_vs_clean.py        (C3/C4/C5 architectural-gap impact)
+  scripts/diagnose_track_f_c1.py                      (single-fold C1 leakage check)
+  scripts/diagnose_track_f_c1_all_folds.py            (all-fold C1 leakage scan)
+  scripts/rerun_track_f_c1_only.py                    (fixed-C1 re-run + splice)
+  experiments/track_f_injection/validator_coverage.csv          (75 rows)
+  experiments/track_f_injection/silenced_impact.csv             (150 rows; C1 from fixed run)
+  experiments/track_f_injection/corruption_provenance.json
+  outputs/track_f/table_validator_coverage.csv
+  outputs/track_f/table_silenced_impact.csv
+  outputs/track_f/table_branch_failure.csv            (C2 catastrophic failure cells)
+  outputs/track_f/table_silenced_vs_clean.csv         (C3/C4/C5 vs clean baseline)
+  outputs/track_f/fig_coverage.pdf
+  outputs/track_f/fig_silenced_impact.pdf
+  ```
 - Track G: TBD
 
 When a track is defined, this section should be replaced with the
