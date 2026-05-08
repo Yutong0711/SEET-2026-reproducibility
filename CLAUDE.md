@@ -258,6 +258,21 @@ schema for that track.
 
 ## Conventions
 
+- **Failure mode F4: data-quality cascade rendering test set empty
+  after feature-NaN drop.** Detected when `X_te.shape[0] == 0` after
+  the matrix-feature baselines (`LogisticRegressionL2`,
+  `LightGbmTuned`) drop NaN-feature rows AND the always-NaN test
+  features appear in `processed_manifest.json` `data_quality_notes`.
+  Demonstrated on Track D's Crisis-2020 `spx_full` configuration:
+  documented VVIX gap dates (2019-07-05, 2020-06-11) propagate
+  through `vvix_pctile_252d` (252-day rolling rank) and cover the
+  entire 2020 test window, dropping every test row for matrix-feature
+  models and rendering all their metrics NaN. The Crisis-2020
+  `spx_no_vvix` recovery configuration removes the four VVIX-derived
+  features and restores operational evaluability for those baselines;
+  the four panel-DataFrame baselines (`NaiveBaseRate`,
+  `VIXPercentileRaw`, `VIXPercentileCalibrated`, `HarRvThreshold`)
+  are unaffected by F4 because they read panel columns directly.
 - **Random seed**: 42 is the primary seed everywhere a single seed is
   needed.
 - **Stochastic models**: report results across **five seeds** — 42, 43,
