@@ -1,6 +1,6 @@
 {
   "ndx_2007": {
-    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
     "feature_count": 12,
     "feature_set_id": "ndx_minimal",
     "features": [
@@ -135,8 +135,144 @@
     "source_panel": "ndx_2007",
     "source_panel_sha256": "054705a04876d3a870676b27a6b51d6f1badb4fe5e6fb4e3dbd7a215092d2770"
   },
+  "ndx_panel": {
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
+    "feature_count": 12,
+    "feature_set_id": "asset_minimal",
+    "features": [
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX / INDEX.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX/INDEX.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX/INDEX.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX / INDEX.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.diff(1)",
+        "lookback_window": 2,
+        "name": "vol_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.diff(5)",
+        "lookback_window": 6,
+        "name": "vol_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vol_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vol_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/ndx_panel_features.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 4863,
+    "schema_version": 1,
+    "sha256": "b8e94e62974f8c417f8cbede89e537415da89948ea7ab022c11816d97ae225a6",
+    "source_panel": "ndx_panel",
+    "source_panel_sha256": "e8d8c9d7e89e7b74a3a72ce16b0ec96bec533c2275474c1941a861fe601aa0fa"
+  },
   "rut_2009": {
-    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
     "feature_count": 12,
     "feature_set_id": "rut_minimal",
     "features": [
@@ -271,8 +407,144 @@
     "source_panel": "rut_2009",
     "source_panel_sha256": "ad887d182c025cab083c320a990748cbc163352ccb366c5e27a82d4d5ec626f2"
   },
+  "rut_panel": {
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
+    "feature_count": 12,
+    "feature_set_id": "asset_minimal",
+    "features": [
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(1)",
+        "lookback_window": 2,
+        "name": "ret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(5)",
+        "lookback_window": 6,
+        "name": "ret_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(10)",
+        "lookback_window": 11,
+        "name": "ret_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX.pct_change(20)",
+        "lookback_window": 21,
+        "name": "ret_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX / INDEX.shift(1))",
+        "lookback_window": 2,
+        "name": "logret_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX/INDEX.shift(1)).rolling(10).std() * sqrt(252)",
+        "lookback_window": 11,
+        "name": "rv_10d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "log(INDEX/INDEX.shift(1)).rolling(20).std() * sqrt(252)",
+        "lookback_window": 21,
+        "name": "rv_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "INDEX"
+        ],
+        "feature_group": 1,
+        "formula": "INDEX / INDEX.rolling(20).max() - 1",
+        "lookback_window": 20,
+        "name": "drawdown_20d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.diff(1)",
+        "lookback_window": 2,
+        "name": "vol_chg_1d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.diff(5)",
+        "lookback_window": 6,
+        "name": "vol_chg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.pct_change(5)",
+        "lookback_window": 6,
+        "name": "vol_pctchg_5d",
+        "schema_version": 1
+      },
+      {
+        "depends_on": [
+          "VOL"
+        ],
+        "feature_group": 2,
+        "formula": "VOL.rolling(252).rank(pct=True)",
+        "lookback_window": 252,
+        "name": "vol_pctile_252d",
+        "schema_version": 1
+      }
+    ],
+    "file_path": "data/processed/features/rut_panel_features.csv",
+    "first_date": "2009-09-16",
+    "last_date": "2026-05-01",
+    "max_warmup_rows": 251,
+    "row_count": 4177,
+    "schema_version": 1,
+    "sha256": "2466e9e6737623869078720046ab6288cd3a28e3460b0d9d8e84e5686ba01a6b",
+    "source_panel": "rut_panel",
+    "source_panel_sha256": "d6318e2a71c2f6d56302c90e16e5c9dd23e78c7fb811dadcaa79934d4c419a91"
+  },
   "spx_core_2007": {
-    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
     "feature_count": 23,
     "feature_set_id": "spx_core",
     "features": [
@@ -521,7 +793,7 @@
     "source_panel_sha256": "3719b91d158205e6b3c0126bef81dc1e3a9cda3537b591304d1975525cdb1531"
   },
   "spx_extended_2011": {
-    "build_timestamp_utc": "2026-05-04T03:54:51Z",
+    "build_timestamp_utc": "2026-05-08T06:54:35Z",
     "feature_count": 35,
     "feature_set_id": "spx_full",
     "features": [

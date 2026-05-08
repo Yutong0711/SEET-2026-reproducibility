@@ -35,6 +35,12 @@ PANEL_TO_FEATURE_SET: dict[str, str] = {
     "spx_core_2007":     "spx_core",
     "ndx_2007":          "ndx_minimal",
     "rut_2009":          "rut_minimal",
+    # Track C: generic INDEX/VOL panels for the multi-asset
+    # replication. Use the asset_minimal feature set which is
+    # mechanically the same as ndx_minimal/rut_minimal but expects
+    # generic column names INDEX (price) and VOL (volatility).
+    "ndx_panel":         "asset_minimal",
+    "rut_panel":         "asset_minimal",
 }
 
 

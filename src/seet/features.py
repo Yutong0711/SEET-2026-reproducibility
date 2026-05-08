@@ -218,11 +218,20 @@ def _assemble_rut_minimal() -> list[dict]:
     return _group1("RUT") + _group2_or_4("RVX", group_id=2)
 
 
+def _assemble_asset_minimal() -> list[dict]:
+    """Track C generic feature set: 8 Group-1 features on a generic
+    INDEX price column + 4 Group-2 features on a generic VOL column.
+    No term structure, no vol-of-vol. Used by ndx_panel and rut_panel,
+    which carry the renamed columns Date, INDEX, VOL."""
+    return _group1("INDEX") + _group2_or_4("VOL", group_id=2)
+
+
 FEATURE_SETS: dict[str, Callable[[], list[dict]]] = {
-    "spx_full":     _assemble_spx_full,
-    "spx_core":     _assemble_spx_core,
-    "ndx_minimal":  _assemble_ndx_minimal,
-    "rut_minimal":  _assemble_rut_minimal,
+    "spx_full":       _assemble_spx_full,
+    "spx_core":       _assemble_spx_core,
+    "ndx_minimal":    _assemble_ndx_minimal,
+    "rut_minimal":    _assemble_rut_minimal,
+    "asset_minimal":  _assemble_asset_minimal,
 }
 
 

@@ -36,6 +36,51 @@
     "row_count": 4863,
     "sha256": "054705a04876d3a870676b27a6b51d6f1badb4fe5e6fb4e3dbd7a215092d2770"
   },
+  "ndx_panel": {
+    "anchor_series": "INDEX",
+    "build_timestamp_utc": "2026-05-08T06:54:27Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "INDEX",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/NDX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2007-01-03",
+        "last_valid_date": "2026-05-01",
+        "name": "VOL",
+        "non_null_count": 4863,
+        "raw_source": "data/raw/VXN.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      }
+    ],
+    "file_path": "data/processed/ndx_panel.csv",
+    "first_date": "2007-01-03",
+    "last_date": "2026-05-01",
+    "purpose": "NDX index + VXN implied vol; Track C generalization (no backfill issues in this window).",
+    "row_count": 4863,
+    "sha256": "e8d8c9d7e89e7b74a3a72ce16b0ec96bec533c2275474c1941a861fe601aa0fa",
+    "track_c_build_notes": {
+      "raw_index_rows": 4863,
+      "raw_vol_rows": 4863,
+      "rows_after_inner_join": 4863,
+      "rows_dropped_na_index": 0,
+      "rows_dropped_na_vol": 0,
+      "rows_final": 4863
+    }
+  },
   "rut_2009": {
     "anchor_series": "RUT",
     "build_timestamp_utc": "2026-05-04T02:56:59Z",
@@ -68,7 +113,6 @@
     ],
     "data_quality_notes": [
       {
-        "series": "RVX",
         "issue": "missing values (NaN in panel)",
         "missing_dates": [
           "2018-05-01",
@@ -78,6 +122,7 @@
           "2020-10-16"
         ],
         "pattern": "scattered",
+        "series": "RVX",
         "summary": "5 isolated single-day RVX gaps across ~2.4 years (2018-05-01 to 2020-10-16); no consecutive-day clustering, no monthly or quarterly concentration. Likely random CBOE feed gaps. Source: CBOE RVX_History.csv. Action: leave as NaN; do not interpolate."
       }
     ],
@@ -87,6 +132,51 @@
     "purpose": "RUT/RVX panel; window is limited by RVX availability (CBOE manual import begins 2009-09-16).",
     "row_count": 4182,
     "sha256": "ad887d182c025cab083c320a990748cbc163352ccb366c5e27a82d4d5ec626f2"
+  },
+  "rut_panel": {
+    "anchor_series": "INDEX",
+    "build_timestamp_utc": "2026-05-08T06:54:27Z",
+    "columns": [
+      {
+        "dtype": "date",
+        "format": "YYYY-MM-DD",
+        "name": "Date"
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2009-09-16",
+        "last_valid_date": "2026-05-01",
+        "name": "INDEX",
+        "non_null_count": 4177,
+        "raw_source": "data/raw/RUT.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      },
+      {
+        "dtype": "float64",
+        "first_valid_date": "2009-09-16",
+        "last_valid_date": "2026-05-01",
+        "name": "VOL",
+        "non_null_count": 4177,
+        "raw_source": "data/raw/RVX.csv",
+        "truncated_before": null,
+        "truncation_reason": null
+      }
+    ],
+    "file_path": "data/processed/rut_panel.csv",
+    "first_date": "2009-09-16",
+    "last_date": "2026-05-01",
+    "purpose": "RUT index + RVX implied vol; Track C generalization. RVX has 5 documented gap dates; rows with missing values are dropped per Track C policy.",
+    "row_count": 4177,
+    "sha256": "d6318e2a71c2f6d56302c90e16e5c9dd23e78c7fb811dadcaa79934d4c419a91",
+    "track_c_build_notes": {
+      "raw_index_rows": 4863,
+      "raw_vol_rows": 4177,
+      "rows_after_inner_join": 4177,
+      "rows_dropped_na_index": 0,
+      "rows_dropped_na_vol": 0,
+      "rows_final": 4177
+    }
   },
   "spx_core_2007": {
     "anchor_series": "SPX",
@@ -140,7 +230,6 @@
     ],
     "data_quality_notes": [
       {
-        "series": "VVIX",
         "issue": "missing values (NaN in panel) post-truncation",
         "missing_dates": [
           "2019-07-05",
@@ -153,6 +242,7 @@
           "2021-05-25"
         ],
         "pattern": "scattered with one cluster",
+        "series": "VVIX",
         "summary": "8 single-day VVIX gaps post-2012-04-01 truncation, all verified absent from data/raw/VVIX.csv but present on the same dates in data/raw/SPX.csv (genuine CBOE-feed origin, not a build artifact). 4 of the 8 cluster in May 2021 (2021-05-05, 2021-05-11, 2021-05-20, 2021-05-25, all within a 3-week window), suggesting a possible CBOE feed incident that month; the other 4 are scattered (2019-07-05, 2020-06-11, 2021-01-22, 2021-02-17). Note: 2019-07-05 (Friday after July 4) is also a missing date in the rut_2009 RVX gaps, hinting at a cross-product CBOE feed issue that day. Action: leave as NaN; do not interpolate."
       }
     ],
@@ -235,7 +325,6 @@
     ],
     "data_quality_notes": [
       {
-        "series": "VVIX",
         "issue": "missing values (NaN in panel) post-truncation",
         "missing_dates": [
           "2019-07-05",
@@ -248,6 +337,7 @@
           "2021-05-25"
         ],
         "pattern": "scattered with one cluster",
+        "series": "VVIX",
         "summary": "8 single-day VVIX gaps post-2012-04-01 truncation, all verified absent from data/raw/VVIX.csv but present on the same dates in data/raw/SPX.csv (genuine CBOE-feed origin, not a build artifact). 4 of the 8 cluster in May 2021 (2021-05-05, 2021-05-11, 2021-05-20, 2021-05-25, all within a 3-week window), suggesting a possible CBOE feed incident that month; the other 4 are scattered (2019-07-05, 2020-06-11, 2021-01-22, 2021-02-17). Note: 2019-07-05 (Friday after July 4) is also a missing date in the rut_2009 RVX gaps, hinting at a cross-product CBOE feed issue that day. Action: leave as NaN; do not interpolate."
       }
     ],
