@@ -226,12 +226,87 @@ def _assemble_asset_minimal() -> list[dict]:
     return _group1("INDEX") + _group2_or_4("VOL", group_id=2)
 
 
+def _assemble_spx_no_vvix() -> list[dict]:
+    """Track D Crisis-2020 recovery feature set.
+
+    31 features = spx_full (35) minus the 4 VVIX-derived features
+    (vvix_chg_1d, vvix_chg_5d, vvix_pctchg_5d, vvix_pctile_252d).
+    Composition:
+      Group 1 on SPX                               (8 features)
+      Group 2 on VIX, VIX9D, VIX3M, VIX6M          (16 features)
+      Group 3 (full term structure)                (7 features)
+
+    Rationale (paired finding F3 + F4 in Track D): VVIX has documented
+    data-quality gaps in processed_manifest.json under both
+    spx_core_2007.data_quality_notes and
+    spx_extended_2011.data_quality_notes — eight isolated single-day
+    gaps including 2019-07-05 and 2020-06-11. The 252-day rolling
+    percentile feature vvix_pctile_252d propagates each gap forward by
+    a full year. The Track D Crisis-2020 test window (2020-01-01 to
+    2020-12-31) sits inside the propagation footprint of both 2019-07-05
+    (lasts through ~mid-2020) and 2020-06-11 (lasts through mid-2021),
+    so every test row carries NaN on vvix_pctile_252d. Under the
+    runner's drop-NaN-feature-rows policy, every test row is dropped
+    for matrix-feature baselines (LR, LightGbmTuned), making their
+    test predictions all NaN and all metrics undefined ("F4: data-
+    quality cascade rendering test set empty after row-drop").
+
+    Removing the 4 VVIX-derived features eliminates the cascade and
+    gives operationally usable Crisis-2020 results for the matrix-
+    feature baselines, paired with the F4 finding from spx_full.
+    """
+    specs: list[dict] = []
+    specs += _group1("SPX")
+    for v in ("VIX", "VIX9D", "VIX3M", "VIX6M"):
+        specs += _group2_or_4(v, group_id=2)
+    specs += _group3(use_short_end=True, use_six_month=True)
+    return specs
+
+
+def _assemble_spx_crisis_2008() -> list[dict]:
+    """Track D Crisis-2008-compatible feature set.
+
+    11 features: 8 Group-1 features on SPX (returns + realized vol +
+    drawdown) plus 3 reduced-Group-2 features on VIX (chg_1d, chg_5d,
+    pctchg_5d). Deliberately omits:
+
+      - *_pctile_252d (any panel starting 2007-01-03 has only ~251
+        trading days of history before train_end=2007-12-31, leaving
+        zero valid rows after the 252-day rolling-rank warmup).
+      - VIX3M / VIX9D / VIX6M features (CBOE launches 2007-12-04,
+        2011-02-23, 2008-01-02 — at most ~20 days of usable history at
+        the Crisis-2008 train_end, and zero for the post-2007 series).
+      - VVIX features (truncated to 2012-04-01 in the processed layer).
+
+    Used by Track D for the Crisis-2008 fold and as the Crisis-2020
+    symmetric robustness check (per the Track D D3 override)."""
+    p = "SPX"
+    v = "VIX"
+    pre = v.lower()
+    specs: list[dict] = []
+    specs += _group1(p)  # 8 features
+    specs += [
+        _spec(f"{pre}_chg_1d", 2,
+              f"{v}.diff(1)", [v], 2,
+              lambda df, v=v: df[v].diff(1)),
+        _spec(f"{pre}_chg_5d", 2,
+              f"{v}.diff(5)", [v], 6,
+              lambda df, v=v: df[v].diff(5)),
+        _spec(f"{pre}_pctchg_5d", 2,
+              f"{v}.pct_change(5)", [v], 6,
+              lambda df, v=v: df[v].pct_change(5)),
+    ]
+    return specs
+
+
 FEATURE_SETS: dict[str, Callable[[], list[dict]]] = {
-    "spx_full":       _assemble_spx_full,
-    "spx_core":       _assemble_spx_core,
-    "ndx_minimal":    _assemble_ndx_minimal,
-    "rut_minimal":    _assemble_rut_minimal,
-    "asset_minimal":  _assemble_asset_minimal,
+    "spx_full":          _assemble_spx_full,
+    "spx_core":          _assemble_spx_core,
+    "ndx_minimal":       _assemble_ndx_minimal,
+    "rut_minimal":       _assemble_rut_minimal,
+    "asset_minimal":     _assemble_asset_minimal,
+    "spx_crisis_2008":   _assemble_spx_crisis_2008,
+    "spx_no_vvix":       _assemble_spx_no_vvix,
 }
 
 
