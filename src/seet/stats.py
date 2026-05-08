@@ -10,6 +10,14 @@ block_bootstrap_ci(values, block_size=1, n_boot=1000, alpha=0.05, seed=42)
     Moving-block bootstrap CI for the mean of `values`. block_size=1
     reduces to the standard non-parametric bootstrap.
 
+paired_bootstrap_ci(a_values, b_values, block_size=1, n_boot=1000,
+                    alpha=0.05, seed=42)
+    Paired bootstrap CI for the mean of paired deltas (a - b). Resamples
+    fold INDICES (preserving pairing structure); each resampled fold
+    contributes both the unmodified value (b) and the ablation value (a),
+    and the per-resample mean is computed as mean(a[idx] - b[idx]). Use
+    this for paired comparisons (Track E ablation deltas).
+
 paired_wilcoxon(a_values, b_values, alternative='two-sided')
     Paired Wilcoxon signed-rank test on per-fold metric vectors.
 
@@ -132,6 +140,116 @@ def block_bootstrap_ci(
         "ci_high": float(np.percentile(boot_means, 100.0 * (1.0 - alpha / 2.0))),
         **base,
         "block_size": int(b),
+    }
+
+
+# ----------------------------------------------------------------------
+# Paired bootstrap CI on deltas
+# ----------------------------------------------------------------------
+
+def paired_bootstrap_ci(
+    a_values,
+    b_values,
+    block_size: int = 1,
+    n_boot: int = 1000,
+    alpha: float = 0.05,
+    seed: int = 42,
+) -> dict:
+    """Paired bootstrap CI for the mean of paired deltas (a - b).
+
+    Pairing semantics
+    -----------------
+    Resamples fold INDICES (with optional block structure), not the
+    pre-computed deltas. Each resampled fold index contributes BOTH
+    a_values[idx] and b_values[idx] to the resample, and the
+    per-resample mean is computed as
+
+        mean( a_values[idx_i] - b_values[idx_i] )
+
+    where {idx_i} are the resampled fold indices. This preserves the
+    pairing structure between unmodified and ablation arms by
+    construction: a fold that is sampled twice contributes its delta
+    twice; a fold that is not sampled contributes nothing.
+
+    NaN handling: any pair where either side is NaN is dropped before
+    resampling, identically to paired_wilcoxon.
+
+    Parameters
+    ----------
+    a_values, b_values : array-like
+        Equal-length per-fold metric arrays. The CI is on the mean of
+        (a - b). For Track E ablations, a_values is the ablation arm
+        and b_values is the unmodified Track A baseline.
+    block_size, n_boot, alpha, seed : as in block_bootstrap_ci.
+
+    Returns
+    -------
+    dict with keys:
+        delta_mean   : float, mean of (a - b) over valid pairs
+        ci_low       : float, lower percentile of bootstrap delta means
+        ci_high      : float, upper percentile of bootstrap delta means
+        n_pairs      : int, number of valid (non-NaN) paired observations
+        n_input      : int, length of inputs before NaN drop
+        n_boot       : int, number of resamples performed
+        block_size   : int, block size used (clamped to n_pairs)
+        seed         : int, the seed used
+        alpha        : float, the alpha used
+        note         : str (optional) — present in degenerate cases
+                       (no valid pairs; in that case all numeric fields
+                       are NaN).
+    """
+    a = np.asarray(a_values, dtype=float).ravel()
+    b = np.asarray(b_values, dtype=float).ravel()
+    if a.shape != b.shape:
+        raise ValueError(
+            f"a_values and b_values must have the same length; "
+            f"got {a.shape} vs {b.shape}"
+        )
+    n_input = int(a.size)
+
+    mask = ~(np.isnan(a) | np.isnan(b))
+    a_clean = a[mask]
+    b_clean = b[mask]
+    n_pairs = int(a_clean.size)
+
+    base = {
+        "n_pairs": n_pairs,
+        "n_input": n_input,
+        "n_boot": int(n_boot),
+        "block_size": int(max(1, block_size)),
+        "seed": int(seed),
+        "alpha": float(alpha),
+    }
+
+    if n_pairs == 0:
+        return {
+            "delta_mean": float("nan"),
+            "ci_low": float("nan"),
+            "ci_high": float("nan"),
+            **base,
+            "note": "no valid pairs (all NaN); CI undefined",
+        }
+
+    bsz = max(1, int(block_size))
+    if bsz > n_pairs:
+        bsz = n_pairs
+    n_blocks = n_pairs - bsz + 1
+    n_per_resample = (n_pairs + bsz - 1) // bsz  # ceil
+
+    rng = np.random.default_rng(seed)
+    boot_means = np.empty(n_boot, dtype=float)
+    for i in range(n_boot):
+        starts = rng.integers(0, n_blocks, size=n_per_resample)
+        idx = (starts[:, None] + np.arange(bsz)).ravel()[:n_pairs]
+        # Pairing preserved: same idx applied to both arrays before diff.
+        boot_means[i] = (a_clean[idx] - b_clean[idx]).mean()
+
+    return {
+        "delta_mean": float((a_clean - b_clean).mean()),
+        "ci_low": float(np.percentile(boot_means, 100.0 * alpha / 2.0)),
+        "ci_high": float(np.percentile(boot_means, 100.0 * (1.0 - alpha / 2.0))),
+        **base,
+        "block_size": int(bsz),
     }
 
 
