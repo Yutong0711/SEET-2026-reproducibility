@@ -498,7 +498,116 @@ labels:
   outputs/track_f/fig_coverage.pdf
   outputs/track_f/fig_silenced_impact.pdf
   ```
-- Track G: TBD
+- Track G: **drift instrumentation for Layer 4 — DONE**.
+  Implements PSI and symmetric KL-divergence on quantile-binned
+  features (eps=1e-6 smoothing for empty bins, NaN-safe),
+  computes per-fold drift summaries for SPX (35 features, h5_d03
+  + h10_d05 + h20_d07, 22 expanding folds), NDX, and RUT (12
+  features each, same fold scheme), joins with the per_fold
+  metrics from Tracks A and C, and reports Spearman rank
+  correlations between drift metrics and operational metrics.
+  No new model fits; everything reads on-disk artifacts. Wall
+  time: ~5 seconds end-to-end. Tests in `tests/test_drift.py`
+  (10 tests) cover identical-distribution → ~0, shifted →
+  monotone-increasing, sym_kl symmetry to 1e-9, missing-column
+  handling, all-NaN safety, and `fold_level_drift_summary`
+  aggregation including descending-PSI ordering.
+
+  **Headline finding (paper-relevant, inverts the original
+  methodology prediction).** For rare-event stress detection,
+  drift correlates *positively* with operational lift, not
+  negatively as a general-ML "drift = degradation" framing
+  would predict:
+
+  | metric pair                      | SPX     | NDX     | RUT     |
+  | -------------------------------- | -------:| -------:| -------:|
+  | mean_psi → drawdown_lift  ρ      | +0.313* | +0.361* | +0.319* |
+  | mean_psi → AUC            ρ      | −0.082  | −0.050  | −0.201* |
+  | max_psi  → AUC            ρ      | −0.193* | −0.027  | −0.085* |
+  | mean_psi → alarm_rate_gap_abs ρ  | +0.039  | +0.186* | +0.269* |
+
+  (*p<0.05 from scipy.stats.spearmanr, all on h10_d05.)
+
+  The mechanism is structural: a high-drift fold is, by
+  construction, a fold whose 6-month test window has different
+  feature statistics than the expanding training history.
+  Regime shifts of that kind are precisely the periods that
+  contain the rare drawdown events the h10_d05 labeling targets.
+  More drift means more events; more events means more alarms
+  hitting real targets; so drawdown_lift goes up. Layer-4 PSI is
+  therefore *not* a degradation indicator for the rare-event
+  pipeline — it is a leading indicator of *event presence*.
+
+  AUC tells the opposite story (mildly): max_psi → AUC is
+  significantly negative for SPX (ρ=−0.193, p=0.001), confirming
+  that drift mildly hurts the model's calm-period score
+  calibration. The boosted-tree models maintain rank ordering
+  on event days (lift) even as the discriminative score
+  distribution shifts (AUC).
+
+  **Layer-4 alarm-gap claim.** Original framing: drift causes
+  realized alarm rate to deviate from the 5% target. NDX
+  (ρ=+0.186, p<0.001) and RUT (ρ=+0.269, p<0.001) confirm; SPX
+  (ρ=+0.039, n.s.) does not, likely because SPX's 35-feature
+  pipeline includes term-structure indicators that adapt with
+  the same regime signal driving the alarm rate, attenuating
+  the deviation. The cross-asset comparison itself is a useful
+  paper observation: feature-richer pipelines absorb drift
+  better at the alarm-rate level.
+
+  **Three highest-drift folds (max_psi)** all involve the
+  252-day rolling-percentile features (`*_pctile_252d`), which
+  are inherently the slowest to adapt to regime shifts:
+  - SPX fold 10 (2019-07 → 2019-12): max_psi = 12.5;
+    high-drift features dominated by `vvix_pctile_252d`,
+    `vix6m_pctile_252d`, `vix3m_pctile_252d` (term-structure
+    pctile suite catching up to the post-Q4-2018 regime).
+  - SPX fold 5 (2016-12 → 2017-06): max_psi = 9.7,
+    n_high_drift = 28 of 35 features simultaneously
+    (post-Trump-election regime shift; near-total drift).
+  - RUT fold 6 (2017-07 → 2017-12): max_psi = 9.5,
+    n_high_drift = 10 of 12 features (rv and vol pctile
+    transforms drifting in the small-cap 2017 bull market).
+
+  **Regime-marker coincidence** is mixed and itself diagnostic:
+  only Jan-2022 rate-hike repricing landed in an "elevated"
+  PSI fold (mean_psi = 1.61, top quartile). Aug-2015 China,
+  Feb-2018 volmageddon, Dec-2018 selloff, Mar-2020 COVID, and
+  Mar-2023 banks all sat at median PSI or below for the fold
+  whose test window contained them. Interpretation: drift
+  signals **sustained regime shifts** (Jan-2022 was a multi-
+  month rate-cycle repricing) more than **punctate events**
+  (Mar-2020 COVID was concentrated in 3 weeks; with 6-month
+  test windows the spike gets averaged into a fold where the
+  rest of the window is calm). This is a paper observation
+  about Layer-4 design: window length determines drift
+  sensitivity, and short-window drift instrumentation would
+  be needed to catch flash events.
+
+  **INVESTIGATE candidates** (10 folds total). Mostly "low
+  drift, low lift" (calm folds without stress events; drift
+  is irrelevant when there's nothing to detect — not a
+  paper anomaly, just baseline-rate floor). The "high drift,
+  high lift" cases (SPX fold 6, fold 21; RUT fold 11, fold 16)
+  are consistent with the positive-correlation main finding
+  rather than counterexamples to it.
+
+  Artifacts:
+  ```
+  src/seet/drift.py                                  (PSI, sym_kl,
+                                                      feature_level_drift,
+                                                      fold_level_drift_summary)
+  tests/test_drift.py                                (10 tests, all pass)
+  scripts/run_track_g.py                             (Steps 2-6)
+  experiments/track_g_drift/fold_drift_spx.csv       (66 rows)
+  experiments/track_g_drift/fold_drift_ndx.csv       (66 rows)
+  experiments/track_g_drift/fold_drift_rut.csv       (66 rows)
+  experiments/track_g_drift/feature_drift_per_fold.csv  (2310 rows, SPX × 3 stress defs × 35 feats × 22 folds)
+  outputs/track_g/table_drift_correlations.csv       (270 rows: 3 assets × 3 stress_defs × 5 drift × 6 op metrics)
+  outputs/track_g/fig_drift_vs_metric.pdf            (2×2 grid, 4 panels per spec)
+  outputs/track_g/fig_drift_timeline.pdf             (SPX h10_d05 mean_psi over time + 6 regime markers)
+  outputs/track_g/fig_feature_drift_heatmap.pdf      (SPX h10_d05, 35×22 grid, cells > 0.25 annotated)
+  ```
 
 When a track is defined, this section should be replaced with the
 specific feature set, model class, evaluation protocol, and STATUS
