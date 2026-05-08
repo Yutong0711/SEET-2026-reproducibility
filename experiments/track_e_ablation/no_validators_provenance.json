@@ -1,0 +1,39 @@
+{
+  "ablation": "no_validators",
+  "anchor": "VIX9D (raw, no truncation)",
+  "raw_input_sha256": {
+    "VIX9D": "42f6d954e20b8f64710c06a806231d1c9bf4a1b1e2bdae86a4ca1d713c6d5273",
+    "SPX": "44ea43ef8223673332557b48b9e0a2039032007681ad60d1b7bd5a5a3c7b29d7",
+    "VIX": "3c7ac3f0a998e7cbf3c61a7532e9b3fd7d1f2b426828eb7424d9f9a6364226e9",
+    "VIX3M": "351b1579d6b52a167ce58a1d558dc7d2a01e2b9453e7e0754bbaae62e7d2d601",
+    "VIX6M": "6cb66349f568d81a6de3a6aa96784b244f0ee552bc940ff7709a5e90b541cf72",
+    "VVIX": "dfd9ad89b79659018d13cd5417bcfdc17c4d45240c655685b1b1b1c92b24324e"
+  },
+  "panel_n_rows": 3855,
+  "panel_first_date": "2011-01-03",
+  "panel_last_date": "2026-05-01",
+  "panel_columns": [
+    "Date",
+    "SPX",
+    "VIX",
+    "VIX9D",
+    "VIX3M",
+    "VIX6M",
+    "VVIX"
+  ],
+  "features_n_rows": 3855,
+  "features_n_cols": 35,
+  "bypassed_validators": [
+    "pre-launch truncation of VVIX (Date < 2012-04-01 in validated)",
+    "data_quality_notes flagging of 8 VVIX gap dates",
+    "anchor cutoff to VIX9D real-launch (2011-02-23 in validated)"
+  ],
+  "diff_vs_validated": {
+    "rows_added_before_validated_anchor": 35,
+    "first_added_date": "2011-01-03",
+    "last_added_date": "2011-02-22",
+    "vvix_synthetic_backfill_rows": 279,
+    "first_synthetic_vvix_date": "2011-02-23",
+    "last_synthetic_vvix_date": "2012-03-30"
+  }
+}
