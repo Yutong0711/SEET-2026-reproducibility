@@ -1,0 +1,7 @@
+,HarRvThreshold,LightGbmTuned,LogisticRegressionL2,NaiveBaseRate,VIXPercentileCalibrated,VIXPercentileRaw
+HarRvThreshold,,0.078125,0.3125,1.0,0.4375,0.00390625
+LightGbmTuned,0.078125,,0.6376953125,1.0,0.5,0.03125
+LogisticRegressionL2,0.3125,0.6376953125,,1.0,0.125,0.109375
+NaiveBaseRate,1.0,1.0,1.0,,1.0,1.0
+VIXPercentileCalibrated,0.4375,0.5,0.125,1.0,,1.0
+VIXPercentileRaw,0.00390625,0.03125,0.109375,1.0,1.0,

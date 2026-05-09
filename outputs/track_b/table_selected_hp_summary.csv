@@ -1,0 +1,4 @@
+stress_def,median_inner_pr_auc,n_folds_with_valid_inner_pr_auc,n_folds_total,learning_rate,max_depth,min_child_samples,n_estimators,num_leaves,reg_alpha,reg_lambda
+h10_d05,0.11381708913546015,22,22,0.01,2,20,200,5,0.0,0.0
+h20_d07,0.1320598846991392,20,22,0.1,2,80,50,5,0.0,0.0
+h5_d03,0.1464707241136676,22,22,0.01,2,20,200,5,0.0,0.0
